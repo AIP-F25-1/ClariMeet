@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "name": "ClariMeet - Video Transcript Player",
+  "description": "Experience seamless video playback with synchronized transcripts, live captions, and intelligent navigation.",
+  "url": "https://clarimeet.com",
+  "type": "webapp",
+  "icons": [
+    {
+      "src": "/video-transcript-icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    }
+  ]
+}

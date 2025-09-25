@@ -1,0 +1,140 @@
+.card-nav-container {
+  position: relative;
+  z-index: 50;
+}
+
+.card-nav {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-nav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  height: 60px;
+}
+
+.hamburger-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-menu:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.hamburger-line {
+  width: 20px;
+  height: 2px;
+  background-color: currentColor;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-menu.open .hamburger-line:first-child {
+  transform: rotate(45deg) translate(3px, 3px);
+}
+
+.hamburger-menu.open .hamburger-line:last-child {
+  transform: rotate(-45deg) translate(3px, -3px);
+}
+
+.logo-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.logo {
+  height: 32px;
+  width: auto;
+}
+
+.card-nav-cta-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card-nav-cta-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-nav-content {
+  padding: 0 24px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.nav-card {
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.nav-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.nav-card-label {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.nav-card-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-card-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  padding: 4px 0;
+}
+
+.nav-card-link:hover {
+  opacity: 0.8;
+  transform: translateX(4px);
+}
+
+.nav-card-link-icon {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 768px) {
+  .card-nav-content {
+    grid-template-columns: 1fr;
+    padding: 0 16px 16px;
+  }
+
+  .card-nav-top {
+    padding: 16px;
+  }
+}
