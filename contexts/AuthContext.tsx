@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('Error parsing saved user:', error)
         localStorage.removeItem('clariMeet_user')
       }
+<<<<<<< HEAD
     } else {
       // TEMPORARY: Auto-login for testing dashboard
       const testUser = {
@@ -59,6 +60,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       setUser(testUser)
       localStorage.setItem('clariMeet_user', JSON.stringify(testUser))
+=======
+>>>>>>> b597c0eb8da7a7bfc870d1cd4ba139322fc6f607
     }
     setIsLoading(false)
   }, [])

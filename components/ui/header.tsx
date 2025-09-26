@@ -1,11 +1,11 @@
 "use client"
 
+import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { AccessGrantPopup } from "./access-grant-popup"
 import { CardNav } from "./card-nav"
 import { UserProfileCompact } from "./user-profile"
-import { useAuth } from "@/contexts/AuthContext"
-import { AccessGrantPopup } from "./access-grant-popup"
-import { useState } from "react"
 
 const navigationItems = [
   {
@@ -45,8 +45,36 @@ export function Header() {
   const { isAuthenticated, isLoading } = useAuth()
   const [showAccessPopup, setShowAccessPopup] = useState(false)
 
-  const handleGetStarted = () => {
-    setShowAccessPopup(true)
+
+  const handleGetStarted = async () => {
+    console.log('🚀 Get Started button clicked!')
+
+    try {
+      // Call API endpoint
+      const response = await fetch('/api/get-started', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+          source: 'header_button',
+          userAgent: navigator.userAgent
+        })
+      })
+
+      const result = await response.json()
+      console.log('✅ API Response:', result)
+
+      // Show popup after successful API call
+      setShowAccessPopup(true)
+      console.log('✅ Popup opened')
+
+    } catch (error) {
+      console.error('❌ API Error:', error)
+      // Still show popup even if API fails
+      setShowAccessPopup(true)
+    }
   }
 
   const handleDashboard = () => {
@@ -57,24 +85,8 @@ export function Header() {
     setShowAccessPopup(false)
   }
 
-  // Add dashboard option to navigation items for authenticated users
   const getNavigationItems = () => {
-    if (!isAuthenticated) return navigationItems
-
-    // Add Dashboard option for authenticated users
-    const dashboardItem = {
-      label: "Dashboard",
-      bgColor: "#8B5CF6",
-      textColor: "#ffffff",
-      links: [
-        { label: "My Meetings", href: "/dashboard/meetings", ariaLabel: "View my meetings" },
-        { label: "Transcriptions", href: "/dashboard/transcriptions", ariaLabel: "View transcriptions" },
-        { label: "Summary", href: "/dashboard/summaries", ariaLabel: "View summaries" },
-        { label: "AI Tools", href: "/dashboard/ai-tools", ariaLabel: "Access AI tools" },
-      ],
-    }
-
-    return [dashboardItem, ...navigationItems]
+    return navigationItems
   }
 
   return (
@@ -88,14 +100,17 @@ export function Header() {
               items={getNavigationItems()}
               baseColor="rgba(0, 0, 0, 0.8)"
               menuColor="#ffffff"
-              buttonBgColor={isAuthenticated ? "#8B5CF6" : "#00FFFF"}
+              buttonBgColor="#00FFFF"
               buttonTextColor="#000000"
-              buttonText={isAuthenticated ? "Dashboard" : "Get Started"}
+              buttonText="Get Started"
               ease="power3.out"
-              onButtonClick={isAuthenticated ? handleDashboard : handleGetStarted}
+              onButtonClick={() => {
+                console.log('📞 CardNav onButtonClick called')
+                handleGetStarted()
+              }}
             />
           </div>
-          
+
           {/* Authentication Section */}
           {!isLoading && (
             <div className="flex-shrink-0">
@@ -108,7 +123,7 @@ export function Header() {
       </div>
 
       {/* Access Grant Popup */}
-      <AccessGrantPopup 
+      <AccessGrantPopup
         isOpen={showAccessPopup}
         onClose={handleClosePopup}
       />

@@ -2,13 +2,13 @@
 
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  Check, 
-  X, 
-  Shield, 
-  Video, 
-  Users, 
-  Mic, 
+import {
+  Check,
+  X,
+  Shield,
+  Video,
+  Users,
+  Mic,
   Camera,
   Sparkles
 } from 'lucide-react'
@@ -18,28 +18,72 @@ interface AccessGrantPopupProps {
   onClose: () => void
 }
 
-export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({ 
-  isOpen, 
-  onClose 
+export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({
+  isOpen,
+  onClose
 }) => {
   const router = useRouter()
 
-  const handleEnableAccess = () => {
-    // Close popup and navigate to toggle page
-    onClose()
-    router.push('/meeting-apps')
+  const handleEnableAccess = async () => {
+    console.log('🎯 ENABLE CLARIMEET clicked!')
+
+    try {
+      // Call API endpoint to enable ClariMeet
+      const response = await fetch('/api/enable-clarimeet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+          source: 'access_grant_popup',
+          userAgent: navigator.userAgent,
+          action: 'enable_clarimeet'
+        })
+      })
+
+      const result = await response.json()
+      console.log('✅ Enable ClariMeet API Response:', result)
+
+      // Close popup after successful API call
+      onClose()
+      console.log('✅ Popup closed')
+
+      // Add small delay to ensure popup closes before navigation
+      setTimeout(() => {
+        console.log('🚀 Navigating to /meeting-apps')
+
+        try {
+          router.push('/meeting-apps')
+          console.log('✅ Router navigation completed')
+        } catch (error) {
+          console.error('❌ Router navigation failed:', error)
+          // Fallback to window.location
+          console.log('🔄 Using window.location fallback')
+          window.location.href = '/meeting-apps'
+        }
+      }, 100)
+
+    } catch (error) {
+      console.error('❌ Enable ClariMeet API Error:', error)
+      // Still proceed with navigation even if API fails
+      onClose()
+      setTimeout(() => {
+        router.push('/meeting-apps')
+      }, 100)
+    }
   }
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      <div
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Popup Content */}
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 transform transition-all duration-300 scale-100">
         {/* Close Button */}
