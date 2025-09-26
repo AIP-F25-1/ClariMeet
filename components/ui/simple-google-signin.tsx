@@ -21,6 +21,7 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
   const [error, setError] = useState<string | null>(null)
 
   const handleSignIn = async () => {
+    console.log('🔐 Google Sign-In button clicked')
     setIsLoading(true)
     setError(null)
 
@@ -46,6 +47,8 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
         `state=${encodeURIComponent(window.location.origin)}&` +
         `include_granted_scopes=true`
 
+      console.log('🚀 Opening Google OAuth popup:', authUrl)
+      
       // Open popup window
       const popup = window.open(
         authUrl,
@@ -54,8 +57,11 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
       )
 
       if (!popup) {
+        console.error('❌ Popup blocked')
         throw new Error('Popup blocked. Please allow popups for this site.')
       }
+      
+      console.log('✅ Popup opened successfully')
 
       // Listen for popup to close or receive message
       const checkClosed = setInterval(() => {

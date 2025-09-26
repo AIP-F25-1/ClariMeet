@@ -161,7 +161,12 @@ export const CardNav = ({
             type="button"
             className="card-nav-cta-button"
             style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
-            onClick={onButtonClick}
+            onClick={(e) => {
+              console.log('CardNav button clicked!', e)
+              if (onButtonClick) {
+                onButtonClick()
+              }
+            }}
           >
             {buttonText}
           </button>

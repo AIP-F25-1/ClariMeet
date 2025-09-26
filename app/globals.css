@@ -127,12 +127,25 @@
     overflow-x: hidden;
   }
 
-  html {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+html {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(45deg);
   }
+  to {
+    transform: rotate(405deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
 }
 
 /* Apple-style glass effect enhancements */

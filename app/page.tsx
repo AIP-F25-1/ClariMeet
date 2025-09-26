@@ -5,6 +5,7 @@ import { Footer } from "@/components/ui/footer";
 import { Header } from "@/components/ui/header";
 import Shuffle from "@/components/ui/shuffle";
 import { SimpleGoogleSignIn } from "@/components/ui/simple-google-signin";
+import { SplineAnimation } from "@/components/ui/spline-animation";
 import { UserProfile } from "@/components/ui/user-profile";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,8 +97,8 @@ export default function Home() {
 
               {/* Right Column - Spline Animation */}
               <div className="flex justify-center lg:justify-end">
-                <div className="w-full max-w-lg h-96 lg:h-[500px] rounded-xl overflow-hidden">
-                  <spline-viewer 
+                <div className="w-full max-w-lg h-96 lg:h-[500px] rounded-xl overflow-hidden bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-400/20">
+                  <SplineAnimation 
                     url="https://prod.spline.design/yIxMDk9qHLolEQfo/scene.splinecode"
                     className="w-full h-full"
                   />
