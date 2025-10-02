@@ -11,70 +11,7 @@ export interface TranscriptData {
   segments: TranscriptSegment[]
 }
 
-// Mock transcript data - replace with actual API calls
-export const mockTranscriptData: TranscriptData = {
-  meeting_id: "meeting_2024_001",
-  segments: [
-    {
-      id: 1,
-      start: 0,
-      end: 3,
-      text: "Welcome to our video presentation about modern web development.",
-      speaker_id: "speaker_1",
-    },
-    {
-      id: 2,
-      start: 3,
-      end: 7,
-      text: "Today we'll explore the latest trends in React and Next.js development.",
-      speaker_id: "speaker_1",
-    },
-    {
-      id: 3,
-      start: 7,
-      end: 12,
-      text: "We'll cover server components, app router, and performance optimization techniques.",
-      speaker_id: "speaker_2",
-    },
-    {
-      id: 4,
-      start: 12,
-      end: 16,
-      text: "Let's start by understanding the fundamentals of modern React architecture.",
-      speaker_id: "speaker_1",
-    },
-    {
-      id: 5,
-      start: 16,
-      end: 21,
-      text: "Server components allow us to render components on the server side for better performance.",
-      speaker_id: "speaker_2",
-    },
-    {
-      id: 6,
-      start: 21,
-      end: 26,
-      text: "This reduces the JavaScript bundle size and improves initial page load times.",
-      speaker_id: "speaker_2",
-    },
-    {
-      id: 7,
-      start: 26,
-      end: 31,
-      text: "Next.js 13 introduced the app directory with a new routing system.",
-      speaker_id: "speaker_1",
-    },
-    {
-      id: 8,
-      start: 31,
-      end: 36,
-      text: "This new system provides better developer experience and more flexibility.",
-      speaker_id: "speaker_1",
-    },
-  ],
-}
-
-export const mockTranscript = mockTranscriptData.segments
+// Mock data has been removed - use actual API calls
 
 /**
  * Fetch transcript data for a video
@@ -86,8 +23,11 @@ export async function fetchTranscript(videoId: string): Promise<TranscriptData> 
   // const response = await fetch(`/api/transcripts/${videoId}`)
   // return response.json()
 
-  // For now, return mock data
-  return Promise.resolve(mockTranscriptData)
+  // Return empty transcript for now
+  return Promise.resolve({
+    meeting_id: videoId,
+    segments: []
+  })
 }
 
 /**

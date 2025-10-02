@@ -9,16 +9,14 @@ const client = new OAuth2Client(
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('Google OAuth callback received')
     const { searchParams } = new URL(request.url)
     const code = searchParams.get('code')
     const error = searchParams.get('error')
     const state = searchParams.get('state')
 
-    console.log('Callback params:', { code: !!code, error, state })
 
     if (error) {
-      console.error('OAuth error:', error)
+      // Handle OAuth error
       const errorMessage = encodeURIComponent(error)
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?error=${errorMessage}`
@@ -26,20 +24,17 @@ export async function GET(request: NextRequest) {
     }
 
     if (!code) {
-      console.error('No authorization code received')
+      // No authorization code
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?error=no_code`
       )
     }
 
     // Exchange authorization code for tokens
-    console.log('Exchanging code for tokens...')
     const { tokens } = await client.getToken(code)
-    console.log('Tokens received:', !!tokens.access_token)
     client.setCredentials(tokens)
 
     // Get user info from Google
-    console.log('Fetching user info...')
     const response = await fetch(
       `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${tokens.access_token}`
     )
@@ -49,7 +44,6 @@ export async function GET(request: NextRequest) {
     }
     
     const userInfo = await response.json()
-    console.log('User info received:', userInfo.email)
 
     // Create user data object
     const userData = {
@@ -108,8 +102,6 @@ export async function GET(request: NextRequest) {
             </button>
           </div>
           <script>
-            console.log('Callback page loaded');
-            console.log('User data:', ${JSON.stringify(userData)});
             
             // Multiple attempts to ensure message is sent
             let attempts = 0;
@@ -117,7 +109,6 @@ export async function GET(request: NextRequest) {
             
             function sendMessage() {
               attempts++;
-              console.log('Attempt', attempts, 'to send message to parent window');
               
               if (window.opener && !window.opener.closed) {
                 try {
@@ -125,27 +116,25 @@ export async function GET(request: NextRequest) {
                     type: 'GOOGLE_AUTH_SUCCESS',
                     user: ${JSON.stringify(userData)}
                   }, window.location.origin);
-                  console.log('Message sent successfully on attempt', attempts);
                   
                   // Close popup after successful send
                   setTimeout(() => {
-                    console.log('Closing popup window');
                     window.close();
                   }, 500);
                   
                   return;
                 } catch (error) {
-                  console.error('Error sending message:', error);
+                  // Handle message error
                 }
               } else {
-                console.error('No window.opener found or parent window is closed');
+                // No parent window
               }
               
               // Retry if not successful and haven't exceeded max attempts
               if (attempts < maxAttempts) {
                 setTimeout(sendMessage, 200);
               } else {
-                console.error('Failed to send message after', maxAttempts, 'attempts');
+                // Max attempts reached
                 // Fallback: try to close anyway
                 setTimeout(() => {
                   window.close();
@@ -167,7 +156,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Google OAuth callback error:', error)
+    // Handle callback error
     
     const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
     

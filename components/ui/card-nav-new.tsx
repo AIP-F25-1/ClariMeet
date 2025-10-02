@@ -1,11 +1,11 @@
 "use client"
 
-import { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { useLayoutEffect, useRef, useState } from 'react';
 // use your own icon import if react-icons is not available
 import { GoArrowUpRight } from 'react-icons/go';
 import './card-nav.css';
-import { CompactAnimatedLogo } from "./compact-animated-logo"
+import { CompactAnimatedLogo } from "./compact-animated-logo";
 
 const CardNav = ({
   logo,

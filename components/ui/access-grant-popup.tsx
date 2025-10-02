@@ -1,17 +1,17 @@
 "use client"
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
-import { 
-  Check, 
-  X, 
-  Shield, 
-  Video, 
-  Users, 
-  Mic, 
-  Camera,
-  Sparkles
+import {
+    Camera,
+    Check,
+    Mic,
+    Shield,
+    Sparkles,
+    Users,
+    Video,
+    X
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import React from 'react'
 
 interface AccessGrantPopupProps {
   isOpen: boolean
@@ -25,7 +25,6 @@ export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({
   const router = useRouter()
 
   const handleEnableAccess = async () => {
-    console.log('🎯 ENABLE CLARIMEET clicked!')
     
     try {
       // Call API endpoint to enable ClariMeet
@@ -43,29 +42,22 @@ export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({
       })
 
       const result = await response.json()
-      console.log('✅ Enable ClariMeet API Response:', result)
 
       // Close popup after successful API call
       onClose()
-      console.log('✅ Popup closed')
       
       // Add small delay to ensure popup closes before navigation
       setTimeout(() => {
-        console.log('🚀 Navigating to /meeting-apps')
         
         try {
           router.push('/meeting-apps')
-          console.log('✅ Router navigation completed')
         } catch (error) {
-          console.error('❌ Router navigation failed:', error)
           // Fallback to window.location
-          console.log('🔄 Using window.location fallback')
           window.location.href = '/meeting-apps'
         }
       }, 100)
 
     } catch (error) {
-      console.error('❌ Enable ClariMeet API Error:', error)
       // Still proceed with navigation even if API fails
       onClose()
       setTimeout(() => {

@@ -13,7 +13,3 @@
 .shuffle-line {
   display: block;
 }
-
-.shuffle-parent.is-ready {
-  opacity: 1;
-}

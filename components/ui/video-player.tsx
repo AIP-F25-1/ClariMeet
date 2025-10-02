@@ -132,11 +132,11 @@ function VideoPlayerContent() {
 
 export function VideoPlayer() {
   const handleSeek = (time: number) => {
-    console.log("[v0] Seek request received:", time)
+    // Handle video seek functionality
   }
 
   return (
-    <TranscriptProvider onJumpToTime={handleSeek} defaultMode="batch" defaultDataSourceMode="mock">
+    <TranscriptProvider onJumpToTime={handleSeek} defaultMode="batch">
       <VideoPlayerContent />
     </TranscriptProvider>
   )

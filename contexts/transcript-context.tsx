@@ -1,12 +1,10 @@
 "use client"
 
 import { fetchTranscript, type TranscriptData, type TranscriptSegment } from "@/services/api/transcript"
-import { loadMockTranscript, type MockTranscriptId } from "@/services/mock/mock-data-service"
 import { liveTranscriptService, type LiveTranscriptEvent } from "@/services/websocket/live-transcript"
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
 export type TranscriptMode = "batch" | "live"
-export type DataSourceMode = "integration" | "mock"
 
 interface TranscriptContextType {
   // Current transcript data
@@ -27,11 +25,6 @@ interface TranscriptContextType {
   setMode: (mode: TranscriptMode) => void
   isLiveConnected: boolean
 
-  dataSourceMode: DataSourceMode
-  setDataSourceMode: (mode: DataSourceMode) => void
-  selectedMockId: MockTranscriptId
-  setSelectedMockId: (id: MockTranscriptId) => void
-
   // Methods for transcript management
   loadTranscript: (videoId: string) => Promise<void>
   clearTranscript: () => void
@@ -49,14 +42,12 @@ interface TranscriptProviderProps {
   children: ReactNode
   onJumpToTime?: (time: number) => void
   defaultMode?: TranscriptMode
-  defaultDataSourceMode?: DataSourceMode
 }
 
 export function TranscriptProvider({
   children,
   onJumpToTime,
   defaultMode = "batch",
-  defaultDataSourceMode = "mock",
 }: TranscriptProviderProps) {
   const [transcriptData, setTranscriptData] = useState<TranscriptData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -66,9 +57,6 @@ export function TranscriptProvider({
   const [mode, setMode] = useState<TranscriptMode>(defaultMode)
   const [isLiveConnected, setIsLiveConnected] = useState(false)
   const [liveSegments, setLiveSegments] = useState<TranscriptSegment[]>([])
-
-  const [dataSourceMode, setDataSourceMode] = useState<DataSourceMode>(defaultDataSourceMode)
-  const [selectedMockId, setSelectedMockId] = useState<MockTranscriptId>("meeting-1")
 
   // Calculate active segment based on current time
   const activeSegment = React.useMemo(() => {
@@ -90,7 +78,6 @@ export function TranscriptProvider({
             }
             break
           case "complete":
-            console.log("[v0] Live transcript streaming completed")
             break
         }
       })
@@ -110,7 +97,7 @@ export function TranscriptProvider({
 
   const loadTranscript = async (videoId: string) => {
     if (mode === "live") {
-      console.warn("[v0] Cannot load batch transcript in live mode")
+      console.warn("Cannot load batch transcript in live mode")
       return
     }
 
@@ -118,24 +105,8 @@ export function TranscriptProvider({
     setError(null)
 
     try {
-      let data: TranscriptData
-
-      if (dataSourceMode === "mock") {
-        // Load from mock data
-        data = await loadMockTranscript(selectedMockId)
-        console.log("Loaded mock transcript:", selectedMockId)
-      } else {
-        // Try integration first, fallback to mock if API fails
-        try {
-          data = await fetchTranscript(videoId)
-          console.log("Loaded transcript from API")
-        } catch (apiError) {
-          console.warn("API failed, falling back to mock data:", apiError)
-          data = await loadMockTranscript(selectedMockId)
-          setError("API unavailable - using mock data")
-        }
-      }
-
+      // Load from API only
+      const data = await fetchTranscript(videoId)
       setTranscriptData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load transcript")
@@ -213,10 +184,6 @@ export function TranscriptProvider({
     mode,
     setMode: handleSetMode,
     isLiveConnected,
-    dataSourceMode,
-    setDataSourceMode,
-    selectedMockId,
-    setSelectedMockId,
     loadTranscript,
     clearTranscript,
     startLiveMode,

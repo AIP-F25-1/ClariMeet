@@ -1,14 +1,16 @@
 "use client"
 
 import { useActiveSegment } from "@/contexts/transcript-context"
-import { getSegmentProgress } from "@/utils/sync"
 
 export function LiveCaptions() {
   const { activeSegment, currentTime } = useActiveSegment()
 
   if (!activeSegment) return null
 
-  const progress = getSegmentProgress(activeSegment, currentTime)
+  // Simple progress calculation
+  const progress = activeSegment.start && activeSegment.end 
+    ? Math.min(100, Math.max(0, ((currentTime - activeSegment.start) / (activeSegment.end - activeSegment.start)) * 100))
+    : 0
 
   return (
     <div className="absolute bottom-16 left-4 right-4 flex justify-center">

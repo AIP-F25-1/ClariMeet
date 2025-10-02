@@ -4,12 +4,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Log the get started action
-    console.log('🚀 Get Started clicked:', {
-      timestamp: new Date().toISOString(),
-      userAgent: request.headers.get('user-agent'),
-      body: body
-    })
+    // Log the get started action (removed for performance)
 
     // You can add any logic here like:
     // - Track analytics
@@ -28,7 +23,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in get-started endpoint:', error)
+    // Handle error silently for performance
     
     return NextResponse.json(
       { 

@@ -4,13 +4,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Log the enable clarimeet action
-    console.log('🎯 ClariMeet Enabled:', {
-      timestamp: new Date().toISOString(),
-      userAgent: request.headers.get('user-agent'),
-      source: body.source || 'access_grant_popup',
-      body: body
-    })
+    // Log the enable clarimeet action (removed for performance)
 
     // You can add logic here like:
     // - Track user onboarding progress
@@ -32,7 +26,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in enable-clarimeet endpoint:', error)
+    // Handle error silently for performance
     
     return NextResponse.json(
       { 

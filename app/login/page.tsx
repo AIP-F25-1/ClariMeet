@@ -1,0 +1,159 @@
+"use client"
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SimpleGoogleSignIn } from '@/components/ui/simple-google-signin'
+import AnimatedBackground from '@/components/ui/animated-background'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    
+    // TODO: Implement actual login logic
+    console.log('Login attempt:', formData)
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false)
+      // For now, just redirect to dashboard
+      router.push('/dashboard')
+    }, 1000)
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  return (
+    <div className="min-h-screen relative bg-black">
+      <AnimatedBackground />
+      
+      {/* Header */}
+      <div className="fixed top-4 left-4 right-4 z-50">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-2xl font-bold text-white">
+              ClariMeet
+            </Link>
+            <div className="flex gap-4">
+              <Link href="/signup">
+                <Button variant="outline" className="border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="pt-24 pb-12 relative z-20">
+        <div className="mx-auto max-w-md px-6">
+          <Card className="bg-black/60 backdrop-blur-xl border-cyan-400/30 shadow-2xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-bold text-white">Welcome Back</CardTitle>
+              <CardDescription className="text-gray-300">
+                Sign in to your ClariMeet account
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Google Sign In */}
+              <div className="space-y-4">
+                <SimpleGoogleSignIn 
+                  className="w-full"
+                  buttonText="Continue with Google"
+                />
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-600" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-black px-2 text-gray-400">Or continue with email</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email/Password Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-white">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-white">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      id="remember"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-600 bg-black/40 text-cyan-400 focus:ring-cyan-400"
+                    />
+                    <Label htmlFor="remember" className="text-sm text-gray-300">
+                      Remember me
+                    </Label>
+                  </div>
+                  <Link href="/forgot-password" className="text-sm text-cyan-400 hover:text-cyan-300">
+                    Forgot password?
+                  </Link>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-semibold py-3"
+                >
+                  {isLoading ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </form>
+
+              {/* Sign Up Link */}
+              <div className="text-center">
+                <p className="text-gray-300">
+                  Don't have an account?{' '}
+                  <Link href="/signup" className="text-cyan-400 hover:text-cyan-300 font-semibold">
+                    Sign up
+                  </Link>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  )
+}

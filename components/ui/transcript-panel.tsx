@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useTranscript } from "@/contexts/transcript-context"
 import { cn } from "@/lib/utils"
 import { formatTime } from "@/services/api/video"
-import { getSegmentProgress, shouldHighlightSegment } from "@/utils/sync"
+// Removed unused sync utils import
 import { useEffect, useRef } from "react"
 
 export function TranscriptPanel() {
@@ -71,8 +71,12 @@ export function TranscriptPanel() {
           <div className="space-y-3 pb-4">
             {transcriptData.segments.map((segment) => {
               const isActive = activeSegment?.id === segment.id
-              const shouldHighlight = shouldHighlightSegment(segment, currentTime)
-              const progress = isActive ? getSegmentProgress(segment, currentTime) : 0
+              // Simple highlight logic
+              const shouldHighlight = segment.start <= currentTime && currentTime <= segment.end
+              // Simple progress calculation
+              const progress = isActive && segment.start && segment.end 
+                ? Math.min(100, Math.max(0, ((currentTime - segment.start) / (segment.end - segment.start)) * 100))
+                : 0
 
               return (
                 <div

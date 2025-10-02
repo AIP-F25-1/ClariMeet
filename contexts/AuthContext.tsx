@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         setUser(JSON.parse(savedUser))
       } catch (error) {
-        console.error('Error parsing saved user:', error)
+        // Handle error silently
         localStorage.removeItem('clariMeet_user')
       }
     }
@@ -65,16 +65,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(userData)
       localStorage.setItem('clariMeet_user', JSON.stringify(userData))
       
-      console.log('User signed in:', userData)
     } catch (error) {
-      console.error('Error during sign in:', error)
+      // Handle error silently
     }
   }
 
   const signOut = () => {
     setUser(null)
     localStorage.removeItem('clariMeet_user')
-    console.log('User signed out')
   }
 
   const value: AuthContextType = {
