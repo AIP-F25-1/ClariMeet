@@ -3,8 +3,8 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
-    // Exclude login route from authentication
-    if (request.nextUrl.pathname === "/api/auth/login") {
+    // Exclude login and signup routes from authentication
+    if (request.nextUrl.pathname === "/api/auth/login" || request.nextUrl.pathname === "/api/auth/signup") {
         return NextResponse.next()
     }
 
