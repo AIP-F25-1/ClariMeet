@@ -1,14 +1,14 @@
 "use client"
 
 import {
-    Camera,
-    Check,
-    Mic,
-    Shield,
-    Sparkles,
-    Users,
-    Video,
-    X
+  Camera,
+  Check,
+  Mic,
+  Shield,
+  Sparkles,
+  Users,
+  Video,
+  X
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React from 'react'
@@ -18,14 +18,13 @@ interface AccessGrantPopupProps {
   onClose: () => void
 }
 
-export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({ 
-  isOpen, 
-  onClose 
+export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({
+  isOpen,
+  onClose
 }) => {
   const router = useRouter()
 
   const handleEnableAccess = async () => {
-    
     try {
       // Call API endpoint to enable ClariMeet
       const response = await fetch('/api/enable-clarimeet', {
@@ -45,10 +44,9 @@ export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({
 
       // Close popup after successful API call
       onClose()
-      
+
       // Add small delay to ensure popup closes before navigation
       setTimeout(() => {
-        
         try {
           router.push('/meeting-apps')
         } catch (error) {
@@ -71,11 +69,11 @@ export const AccessGrantPopup: React.FC<AccessGrantPopupProps> = ({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Popup Content */}
       <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 transform transition-all duration-300 scale-100">
         {/* Close Button */}

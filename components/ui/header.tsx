@@ -43,7 +43,7 @@ export function Header() {
   const router = useRouter()
   const { isAuthenticated, isLoading } = useAuth()
   const [showAccessPopup, setShowAccessPopup] = useState(false)
-  
+
 
   const handleGetStarted = async () => {
     try {
@@ -103,7 +103,7 @@ export function Header() {
       </div>
 
       {/* Access Grant Popup */}
-      <AccessGrantPopup 
+      <AccessGrantPopup
         isOpen={showAccessPopup}
         onClose={handleClosePopup}
       />

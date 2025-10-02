@@ -68,7 +68,7 @@ export default function Home() {
                         </p>
                       </div>
                       <UserProfile />
-                      
+
                       {/* Quick Dashboard Access */}
                       <div className="text-center lg:text-left">
                         <button
@@ -87,7 +87,7 @@ export default function Home() {
                       <p className="text-gray-300 text-sm mb-4 text-center lg:text-left">
                         Sign in to get started with ClariMeet
                       </p>
-                      <SimpleGoogleSignIn 
+                      <SimpleGoogleSignIn
                         className="w-full"
                         buttonText="Sign in with Google"
                       />
@@ -115,12 +115,12 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Right Column - Animated Logo */}
-              <div className="flex justify-center lg:justify-end">
-                <div className="w-full max-w-lg h-96 lg:h-[500px]">
-                  <AnimatedLogo className="w-full h-full" />
-                </div>
-              </div>
+               {/* Right Column - Animated Logo */}
+               <div className="flex justify-center lg:justify-end">
+                 <div className="w-full max-w-lg h-96 lg:h-[500px]">
+                   <AnimatedLogo className="w-full h-full" />
+                 </div>
+               </div>
             </div>
           </div>
 

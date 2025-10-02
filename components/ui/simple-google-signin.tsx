@@ -35,7 +35,7 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
       const redirectUri = `${window.location.origin}/api/auth/google/callback`
       const scope = 'openid email profile'
       const responseType = 'code'
-      
+
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${encodeURIComponent(clientId)}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
@@ -70,46 +70,46 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
       // Listen for message from popup
       const messageHandler = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return
-        
+
         if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
           clearInterval(checkClosed)
           popup.close()
           window.removeEventListener('message', messageHandler)
-          
+
           const userData = event.data.user
           signIn(userData)
-          
+
           if (onSuccess) {
             onSuccess(userData)
           }
-          
+
           setIsLoading(false)
         } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
           clearInterval(checkClosed)
           popup.close()
           window.removeEventListener('message', messageHandler)
-          
+
           throw new Error(event.data.error || 'Authentication failed')
         }
       }
 
       // Add message listener with better error handling
       window.addEventListener('message', messageHandler)
-      
+
       // Also listen for popup focus events as backup
       const focusHandler = () => {
         if (popup && popup.closed) {
           clearInterval(checkClosed)
-          clearTimeout(timeoutId)
+          // clearTimeout(timeoutId)
           window.removeEventListener('message', messageHandler)
           window.removeEventListener('focus', focusHandler)
           setIsLoading(false)
           setError('Authentication was cancelled')
         }
       }
-      
+
       window.addEventListener('focus', focusHandler)
-      
+
       // Clean up focus listener when done
       const originalMessageHandler = messageHandler
       const wrappedMessageHandler = (event: MessageEvent) => {
@@ -118,7 +118,7 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
           window.removeEventListener('focus', focusHandler)
         }
       }
-      
+
       window.removeEventListener('message', messageHandler)
       window.addEventListener('message', wrappedMessageHandler)
 
@@ -126,7 +126,7 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
       console.error('Google Sign-In error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Authentication failed'
       setError(errorMessage)
-      
+
       if (onError) {
         onError(error)
       }
@@ -165,7 +165,7 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
         )}
         {isLoading ? 'Signing in...' : buttonText}
       </button>
-      
+
       {error && (
         <div className="text-red-400 text-sm text-center">
           {error}
