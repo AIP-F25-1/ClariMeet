@@ -1,0 +1,4 @@
+services:
+  - "redis-server --port 6379"                 # Redis service for caching/messages
+  - "ffmpeg -hide_banner -loglevel error"     # FFmpeg for audio/video processing
+  - "uvicorn src.clarimeet.export_report.main:app --host 0.0.0.0 --port 8004"  # Export/Report service
