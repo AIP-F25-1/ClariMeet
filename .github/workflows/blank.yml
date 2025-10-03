@@ -33,7 +33,7 @@ jobs:
           unzip sonar-scanner.zip
           ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
             -Dsonar.projectKey=Clarimeet \
-            -Dsonar.organization=siddhi patel \
+            -Dsonar.organization=siddhipatel \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.sources=src \
             -Dsonar.python.coverage.reportPaths=coverage.xml \
