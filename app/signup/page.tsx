@@ -6,41 +6,60 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SimpleGoogleSignIn } from '@/components/ui/simple-google-signin'
+import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export default function SignupPage() {
   const router = useRouter()
+  const { signupWithCredentials, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: ''
   })
 
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    router.push('/dashboard')
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
+      setError('Passwords do not match')
       setIsLoading(false)
       return
     }
     
-    // TODO: Implement actual signup logic
-    console.log('Signup attempt:', formData)
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const success = await signupWithCredentials(
+        formData.fullName,
+        formData.email,
+        formData.password
+      )
+      
+      if (success) {
+        // Redirect to dashboard on successful signup
+        router.push('/dashboard')
+      } else {
+        setError('Failed to create account. Please try again.')
+      }
+    } catch (error) {
+      console.error('Signup error:', error)
+      setError('An error occurred. Please try again.')
+    } finally {
       setIsLoading(false)
-      // For now, just redirect to dashboard
-      router.push('/dashboard')
-    }, 1000)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,35 +118,27 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Signup Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-white">First Name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-white">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-white">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white">Email</Label>

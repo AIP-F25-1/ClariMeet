@@ -1,23 +1,20 @@
 "use client"
 
-import AnimatedBackground from "@/components/ui/animated-background"
-import { Header } from "@/components/ui/header"
+import { DashboardLayout } from "@/components/ui/dashboard-layout"
+import { ProtectedRoute } from "@/components/ui/protected-route"
 import { UserProfileCompact } from "@/components/ui/user-profile"
 import { useAuth } from "@/contexts/AuthContext"
-import { 
-  Calendar, 
-  FileText, 
-  Brain, 
-  BarChart3, 
-  Clock, 
-  Users,
-  Upload,
-  Sparkles,
-  TrendingUp
+import {
+    BarChart3,
+    Brain,
+    Calendar,
+    Clock,
+    FileText,
+    Sparkles,
+    TrendingUp,
+    Upload
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 
 const dashboardOptions = [
   {
@@ -87,36 +84,12 @@ const quickStats = [
 ]
 
 export default function Dashboard() {
-  const { isAuthenticated, user, isLoading } = useAuth()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/")
-    }
-  }, [isAuthenticated, isLoading, router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen relative bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return null
-  }
+  const { user } = useAuth()
 
   return (
-    <div className="min-h-screen relative bg-black">
-      {/* Animated Background Component */}
-      <AnimatedBackground />
-
-      <Header />
-
-      <main className="pt-24 pb-12 relative z-20">
-        <div className="mx-auto max-w-7xl px-6 space-y-8">
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="space-y-8">
           {/* Dashboard Header */}
           <div className="bg-black/60 backdrop-blur-xl rounded-3xl border border-cyan-400/30 shadow-2xl p-8 md:p-12 hover:bg-black/70 transition-all duration-500 hover:shadow-3xl hover:scale-[1.01]">
             <div className="flex items-center justify-between mb-8">
@@ -228,7 +201,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   )
 }

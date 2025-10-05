@@ -9,28 +9,43 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SimpleGoogleSignIn } from '@/components/ui/simple-google-signin'
 import AnimatedBackground from '@/components/ui/animated-background'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { loginWithCredentials, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
 
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    router.push('/dashboard')
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // TODO: Implement actual login logic
-    console.log('Login attempt:', formData)
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const success = await loginWithCredentials(formData.email, formData.password)
+      
+      if (success) {
+        // Redirect to dashboard on successful login
+        router.push('/dashboard')
+      } else {
+        setError('Invalid email or password. Please try again.')
+      }
+    } catch (error) {
+      setError('An error occurred. Please try again.')
+    } finally {
       setIsLoading(false)
-      // For now, just redirect to dashboard
-      router.push('/dashboard')
-    }, 1000)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +103,13 @@ export default function LoginPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
 
               {/* Email/Password Form */}
               <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { compare } from "bcrypt"
-import { sign } from "jsonwebtoken"
+import { createHmac } from "crypto"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         }
 
         // Verify password
-        const isPasswordValid = await compare(password, user.password)
+        const isPasswordValid = await compare(password, user.password || "")
         if (!isPasswordValid) {
             return NextResponse.json(
                 { error: "Invalid credentials" },
@@ -46,16 +46,11 @@ export async function POST(request: Request) {
             )
         }
 
-        // Generate JWT token
-        const token = sign(
-            {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            },
-            process.env.JWT_SECRET || "your-secret-key",
-            { expiresIn: "24h" }
-        )
+        // Generate simple token using HMAC
+        const payload = JSON.stringify({ id: user.id, email: user.email, exp: Date.now() + 24 * 60 * 60 * 1000 })
+        const token = createHmac('sha256', process.env.JWT_SECRET || "your-secret-key")
+            .update(payload)
+            .digest('hex')
 
         // Return success response
         return NextResponse.json({
@@ -63,7 +58,6 @@ export async function POST(request: Request) {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                role: user.role,
             },
             token,
         })
