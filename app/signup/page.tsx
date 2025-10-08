@@ -6,20 +6,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SimpleGoogleSignIn } from '@/components/ui/simple-google-signin'
+import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export default function SignupPage() {
   const router = useRouter()
+  const { signupWithCredentials, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     password: '',
     confirmPassword: ''
   })
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    router.push('/dashboard')
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +50,7 @@ export default function SignupPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          name: formData.fullName.trim(),
           email: formData.email,
           password: formData.password,
         }),
@@ -60,17 +68,13 @@ export default function SignupPage() {
       // Store JWT for subsequent requests
       localStorage.setItem('token', data.token)
 
-      // Also prime AuthContext so dashboard renders immediately
-      try {
-        const { signIn } = await import('@/contexts/AuthContext') as any
-        // signIn from context is a hook usage; instead, set a minimal user cache for now
-        localStorage.setItem('clariMeet_user', JSON.stringify({
-          id: data.user.id,
-          name: data.user.name || '',
-          email: data.user.email || '',
-          picture: ''
-        }))
-      } catch {}
+      // Persist minimal user so AuthContext picks it up on dashboard
+      localStorage.setItem('clariMeet_user', JSON.stringify({
+        id: data.user.id,
+        name: data.user.name || '',
+        email: data.user.email || '',
+        picture: ''
+      }))
 
       router.push('/dashboard')
     } catch (err) {
@@ -136,35 +140,27 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Signup Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-white">First Name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-white">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      required
-                      className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-white">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-black/40 border-cyan-400/30 text-white placeholder:text-gray-400 focus:border-cyan-400"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white">Email</Label>

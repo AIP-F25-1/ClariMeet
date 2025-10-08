@@ -77,11 +77,21 @@ export const SimpleGoogleSignIn: React.FC<SimpleGoogleSignInProps> = ({
           window.removeEventListener('message', messageHandler)
 
           const userData = event.data.user
+          const token = event.data.token
+          
+          // Store token in localStorage
+          if (token) {
+            localStorage.setItem('clariMeet_token', token)
+          }
+          
           signIn(userData)
 
           if (onSuccess) {
             onSuccess(userData)
           }
+
+          // Redirect to dashboard after successful authentication
+          window.location.href = '/dashboard'
 
           setIsLoading(false)
         } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {

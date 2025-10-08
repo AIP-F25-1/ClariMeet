@@ -2,15 +2,12 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { hash } from "bcrypt"
-import { sign } from "jsonwebtoken"
+import { createHmac } from "crypto"
 
 const signupSchema = z.object({
-    name: z.string().min(1, "Name is required").max(100).optional(),
+    name: z.string().min(1, "Name is required").max(100),
     email: z.string().email("Invalid email address").toLowerCase(),
-    password: z
-        .string()
-        .min(8, "Password must be at least 8 characters")
-        .regex(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/, "Password must include upper, lower, and number"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
 export async function POST(request: Request) {
@@ -19,8 +16,9 @@ export async function POST(request: Request) {
 
         const parsed = signupSchema.safeParse(body)
         if (!parsed.success) {
+            const errorMessages = parsed.error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json(
-                { error: "Invalid input", details: parsed.error.issues },
+                { error: errorMessages, details: parsed.error.issues },
                 { status: 400 }
             )
         }
@@ -45,19 +43,17 @@ export async function POST(request: Request) {
             },
         })
 
-        const token = sign(
-            { id: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET || "your-secret-key",
-            { expiresIn: "24h" }
-        )
+        // Generate simple token using HMAC
+        const payload = JSON.stringify({ id: user.id, email: user.email, exp: Date.now() + 24 * 60 * 60 * 1000 })
+        const token = createHmac('sha256', process.env.JWT_SECRET || "your-secret-key")
+            .update(payload)
+            .digest('hex')
 
         return NextResponse.json({
             user: {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                role: user.role,
-                verified: user.verified,
                 createdAt: user.createdAt,
             },
             token,
@@ -83,5 +79,3 @@ export async function POST(request: Request) {
         )
     }
 }
-
-

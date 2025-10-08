@@ -1,5 +1,7 @@
 import { OAuth2Client } from 'google-auth-library'
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { createHmac } from 'crypto'
 
 const client = new OAuth2Client(
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
@@ -45,15 +47,55 @@ export async function GET(request: NextRequest) {
     
     const userInfo = await response.json()
 
-    // Create user data object
+    // Check if user exists in database, if not create them
+    let user = await prisma.user.findUnique({
+      where: { email: userInfo.email }
+    })
+
+    if (!user) {
+      // Create new user in database
+      user = await prisma.user.create({
+        data: {
+          email: userInfo.email,
+          name: userInfo.name,
+          password: '', // Google users don't have a password
+          verified: userInfo.verified_email || false
+        }
+      })
+    } else {
+      // Update user info if needed
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          name: userInfo.name,
+          verified: userInfo.verified_email || user.verified
+        }
+      })
+    }
+
+    // Generate simple token using HMAC
+    const payload = JSON.stringify({ id: user.id, email: user.email, exp: Date.now() + 24 * 60 * 60 * 1000 })
+    const token = createHmac('sha256', process.env.JWT_SECRET || "your-secret-key")
+      .update(payload)
+      .digest('hex')
+
+    // Create user data object for frontend
     const userData = {
-      id: userInfo.id,
-      email: userInfo.email,
-      name: userInfo.name,
+      id: user.id,
+      email: user.email,
+      name: user.name,
       picture: userInfo.picture,
       given_name: userInfo.given_name,
       family_name: userInfo.family_name,
       verified_email: userInfo.verified_email
+    }
+
+    // Store user data in localStorage via postMessage
+    const userDataForStorage = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      picture: userInfo.picture
     }
 
     // Create HTML page that sends message to parent window
@@ -114,7 +156,8 @@ export async function GET(request: NextRequest) {
                 try {
                   window.opener.postMessage({
                     type: 'GOOGLE_AUTH_SUCCESS',
-                    user: ${JSON.stringify(userData)}
+                    user: ${JSON.stringify(userDataForStorage)},
+                    token: '${token}'
                   }, window.location.origin);
                   
                   // Close popup after successful send

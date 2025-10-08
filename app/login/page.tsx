@@ -11,14 +11,22 @@ import { SimpleGoogleSignIn } from '@/components/ui/simple-google-signin'
 import AnimatedBackground from '@/components/ui/animated-background'
 import { useAuth } from '@/contexts/AuthContext'
 
+
 export default function LoginPage() {
   const router = useRouter()
-  const { signIn } = useAuth()
+  const { signIn, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    router.push('/dashboard')
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,6 +60,14 @@ export default function LoginPage() {
         given_name: data.user.name || '',
         family_name: ''
       })
+
+      // Also persist the user for initial load on dashboard
+      localStorage.setItem('clariMeet_user', JSON.stringify({
+        id: data.user.id,
+        name: data.user.name || '',
+        email: data.user.email || '',
+        picture: ''
+      }))
 
       router.push('/dashboard')
     } catch (err) {
@@ -116,6 +132,13 @@ export default function LoginPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
 
               {/* Email/Password Form */}
               <form onSubmit={handleSubmit} className="space-y-4">

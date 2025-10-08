@@ -157,14 +157,16 @@ export const CardNav = ({
             <CompactAnimatedLogo />
           </div>
 
-          <button
-            type="button"
-            className="card-nav-cta-button"
-            style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
-            onClick={onButtonClick}
-          >
-            {buttonText}
-          </button>
+          {buttonText && (
+            <button
+              type="button"
+              className="card-nav-cta-button"
+              style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+              onClick={onButtonClick}
+            >
+              {buttonText}
+            </button>
+          )}
         </div>
 
         <div className="card-nav-content" aria-hidden={!isExpanded}>

@@ -7,6 +7,7 @@ import { Footer } from "@/components/ui/footer";
 import { Header } from "@/components/ui/header";
 import Shuffle from "@/components/ui/shuffle";
 import { SimpleGoogleSignIn } from "@/components/ui/simple-google-signin";
+import { SimpleTracingBeam } from "@/components/ui/simple-tracing-beam";
 import { UserProfile } from "@/components/ui/user-profile";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
@@ -18,6 +19,9 @@ export default function Home() {
     <div className="min-h-screen relative bg-black">
       {/* Animated Background Component */}
       <AnimatedBackground />
+
+      {/* Simple Tracing Beam */}
+      <SimpleTracingBeam />
 
       <Header />
 
