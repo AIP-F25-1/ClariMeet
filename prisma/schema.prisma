@@ -49,3 +49,49 @@ model PasswordResetToken {
 
   @@unique([email, token])
 }
+
+model Meeting {
+  id         String    @id @default(cuid())
+  orgId      String
+  title      String
+  startedAt  DateTime
+  endedAt    DateTime?
+  platform   Platform
+  status     MeetingStatus @default(SCHEDULED)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  attendees  Attendee[]
+}
+
+model Attendee {
+  id        String   @id @default(cuid())
+  email     String
+  name      String?
+  role      AttendeeRole @default(PARTICIPANT)
+  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+  meetingId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([email, meetingId])
+}
+
+enum Platform {
+  GOOGLE_MEET
+  ZOOM
+  TEAMS
+  OTHER
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendeeRole {
+  HOST
+  CO_HOST
+  PARTICIPANT
+}
