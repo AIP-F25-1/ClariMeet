@@ -1,33 +1,41 @@
+import { NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { compare } from "bcrypt"
 import { sign } from "jsonwebtoken"
-import { NextResponse } from "next/server"
-import { z } from "zod"
 
 // Validation schema
 const loginSchema = z.object({
-    email: z.string().email("Invalid email address"),
+    email: z.string().email("Invalid email address").toLowerCase(),
     password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
 export async function POST(request: Request) {
     try {
         const body = await request.json()
+        console.log("Login attempt for:", { email: body.email })
 
         // Validate input
-        const result = loginSchema.safeParse(body)
-        if (!result.success) {
+        const parsed = loginSchema.safeParse(body)
+        if (!parsed.success) {
             return NextResponse.json(
-                { error: "Invalid input", details: result.error.issues },
-                { status: 400 }
+                { error: "Invalid credentials" },
+                { status: 401 }
             )
         }
 
-        const { email, password } = result.data
+        const { email, password } = parsed.data
 
         // Find user
         const user = await prisma.user.findUnique({
             where: { email },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                password: true,
+                role: true
+            }
         })
 
         if (!user) {
@@ -53,19 +61,20 @@ export async function POST(request: Request) {
                 email: user.email,
                 role: user.role
             },
-            process.env.JWT_SECRET || "your-secret-key",
+            process.env.JWT_SECRET || "",
             { expiresIn: "24h" }
         )
 
         // Return success response
         return NextResponse.json({
+            success: true,
             user: {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                role: user.role,
+                role: user.role
             },
-            token,
+            token
         })
 
     } catch (error) {

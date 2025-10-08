@@ -2,10 +2,10 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { hash } from "bcrypt"
-import { sign } from "jsonwebtoken" // Change from createHmac to sign
+import { sign } from "jsonwebtoken"
 
 const signupSchema = z.object({
-    fullName: z.string().min(1, "Name is required").max(100), // Changed from name to fullName
+    name: z.string().min(1, "Name is required").max(100),
     email: z.string().email("Invalid email address").toLowerCase(),
     password: z.string().min(6, "Password must be at least 6 characters"),
 })
@@ -13,63 +13,65 @@ const signupSchema = z.object({
 export async function POST(request: Request) {
     try {
         const body = await request.json()
-        console.log("Received signup request:", { ...body, password: '***' }) // Add logging
+        console.log("Received signup request:", { ...body, password: '***' })
 
         const parsed = signupSchema.safeParse(body)
         if (!parsed.success) {
-            const errorMessages = parsed.error.issues.map(issue => issue.message).join(', ')
+            console.log("Validation failed:", parsed.error.issues)
             return NextResponse.json(
-                { error: errorMessages, details: parsed.error.issues },
+                { error: "Validation failed", details: parsed.error.issues },
                 { status: 400 }
             )
         }
 
-        const { fullName, email, password } = parsed.data
+        const { name, email, password } = parsed.data
 
         const existing = await prisma.user.findUnique({ where: { email } })
         if (existing) {
             return NextResponse.json(
-                { error: "User already exists" },
+                { error: "Email already registered" },
                 { status: 409 }
             )
         }
 
-        const passwordHash = await hash(password, 10)
+        const hashedPassword = await hash(password, 10)
 
         const user = await prisma.user.create({
             data: {
-                name: fullName, // Map fullName to name
+                name,
                 email,
-                password: passwordHash,
-                verified: true, // Set to true for testing
+                password: hashedPassword,
+                verified: true,
+                role: "USER"
             },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true
+            }
         })
 
-        // Generate JWT token instead of HMAC
         const token = sign(
             {
                 id: user.id,
                 email: user.email,
                 role: user.role
             },
-            process.env.JWT_SECRET || "your-secret-key",
+            process.env.JWT_SECRET || "",
             { expiresIn: "24h" }
         )
 
         return NextResponse.json({
             success: true,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-            },
-            token,
-        }, { status: 201 })
-    } catch (error: unknown) {
-        console.error("Signup error:", error) // Add detailed error logging
+            user,
+            token
+        })
+
+    } catch (error) {
+        console.error("Signup error:", error)
         return NextResponse.json(
-            { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
+            { error: "Internal server error" },
             { status: 500 }
         )
     }
