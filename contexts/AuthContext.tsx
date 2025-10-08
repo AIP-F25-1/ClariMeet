@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check if user is already signed in (from localStorage)
     const savedUser = localStorage.getItem('clariMeet_user')
     const savedToken = localStorage.getItem('clariMeet_token')
-    
+
     if (savedUser && savedToken) {
       try {
         setUser(JSON.parse(savedUser))
@@ -67,10 +67,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         given_name: response.given_name,
         family_name: response.family_name
       }
-      
+
       setUser(userData)
       localStorage.setItem('clariMeet_user', JSON.stringify(userData))
-      
+
     } catch (error) {
       // Handle error silently
     }
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: data.user.email,
           token: data.token
         }
-        
+
         setUser(userData)
         localStorage.setItem('clariMeet_user', JSON.stringify(userData))
         localStorage.setItem('clariMeet_token', data.token)
@@ -125,7 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: data.user.email,
           token: data.token
         }
-        
+
         setUser(userData)
         localStorage.setItem('clariMeet_user', JSON.stringify(userData))
         localStorage.setItem('clariMeet_token', data.token)

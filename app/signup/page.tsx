@@ -33,30 +33,48 @@ export default function SignupPage() {
     e.preventDefault()
     setIsLoading(true)
     setError('')
-    
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      setIsLoading(false)
-      return
-    }
-    
+
     try {
-      const success = await signupWithCredentials(
-        formData.fullName,
-        formData.email,
-        formData.password
-      )
-      
-      if (success) {
-        // Redirect to dashboard on successful signup
+      // Validate passwords match
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match')
+        return
+      }
+
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create account')
+      }
+
+      if (data.success && data.token) {
+        // Store the token
+        localStorage.setItem('token', data.token)
+        // Update auth context
+        await signupWithCredentials(
+          formData.fullName,
+          formData.email,
+          formData.password
+        )
         router.push('/dashboard')
       } else {
         setError('Failed to create account. Please try again.')
       }
     } catch (error) {
       console.error('Signup error:', error)
-      setError('An error occurred. Please try again.')
+      setError(error instanceof Error ? error.message : 'An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -72,7 +90,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen relative bg-black">
       <AnimatedBackground />
-      
+
       {/* Header */}
       <div className="fixed top-4 left-4 right-4 z-50">
         <div className="mx-auto max-w-7xl">
@@ -104,7 +122,7 @@ export default function SignupPage() {
             <CardContent className="space-y-6">
               {/* Google Sign In */}
               <div className="space-y-4">
-                <SimpleGoogleSignIn 
+                <SimpleGoogleSignIn
                   className="w-full"
                   buttonText="Continue with Google"
                 />
