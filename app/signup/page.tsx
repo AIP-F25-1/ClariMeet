@@ -24,23 +24,60 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match')
-      setIsLoading(false)
-      return
-    }
-    
-    // TODO: Implement actual signup logic
-    console.log('Signup attempt:', formData)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      // For now, just redirect to dashboard
+
+    try {
+      if (formData.password !== formData.confirmPassword) {
+        alert('Passwords do not match')
+        return
+      }
+
+      // Client-side password strength check mirroring API (min 8, upper, lower, number)
+      const strongPasswordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/
+      if (!strongPasswordRegex.test(formData.password)) {
+        alert('Password must be at least 8 characters and include upper, lower, and a number')
+        return
+      }
+
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        const serverMsg = Array.isArray(data?.details) && data.details[0]?.message
+          ? data.details[0].message
+          : (data?.error || 'Signup failed')
+        alert(serverMsg)
+        return
+      }
+
+      // Store JWT for subsequent requests
+      localStorage.setItem('token', data.token)
+
+      // Also prime AuthContext so dashboard renders immediately
+      try {
+        const { signIn } = await import('@/contexts/AuthContext') as any
+        // signIn from context is a hook usage; instead, set a minimal user cache for now
+        localStorage.setItem('clariMeet_user', JSON.stringify({
+          id: data.user.id,
+          name: data.user.name || '',
+          email: data.user.email || '',
+          picture: ''
+        }))
+      } catch {}
+
       router.push('/dashboard')
-    }, 1000)
+    } catch (err) {
+      alert('Network error')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

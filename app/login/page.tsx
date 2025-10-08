@@ -9,9 +9,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SimpleGoogleSignIn } from '@/components/ui/simple-google-signin'
 import AnimatedBackground from '@/components/ui/animated-background'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { signIn } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -21,16 +23,42 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
-    // TODO: Implement actual login logic
-    console.log('Login attempt:', formData)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      // For now, just redirect to dashboard
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data?.error || 'Invalid credentials')
+        return
+      }
+
+      // Persist JWT for authenticated API calls from the dashboard
+      localStorage.setItem('token', data.token)
+
+      // Update AuthContext user so dashboard sees you as authenticated
+      signIn({
+        credential: data.user.id,
+        name: data.user.name || '',
+        email: data.user.email || '',
+        picture: '',
+        given_name: data.user.name || '',
+        family_name: ''
+      })
+
       router.push('/dashboard')
-    }, 1000)
+    } catch (err) {
+      alert('Network error')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
