@@ -1,6 +1,6 @@
 "use client"
 
-import { DashboardLayout } from "@/components/ui/dashboard-layout"
+import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
 import { ProtectedRoute } from "@/components/ui/protected-route"
 import { UserProfileCompact } from "@/components/ui/user-profile"
 import { useAuth } from "@/contexts/AuthContext"
@@ -88,7 +88,7 @@ export default function Dashboard() {
 
   return (
     <ProtectedRoute>
-      <DashboardLayout>
+      <DashboardLayoutWithSidebar>
         <div className="space-y-8">
           {/* Dashboard Header */}
           <div className="bg-black/60 backdrop-blur-xl rounded-3xl border border-cyan-400/30 shadow-2xl p-8 md:p-12 hover:bg-black/70 transition-all duration-500 hover:shadow-3xl hover:scale-[1.01]">
@@ -201,7 +201,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </DashboardLayout>
+      </DashboardLayoutWithSidebar>
     </ProtectedRoute>
   )
 }

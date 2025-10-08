@@ -32,49 +32,53 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError('')
 
     try {
-      // Validate passwords match
       if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match')
+        alert('Passwords do not match')
         return
       }
 
-      const response = await fetch('/api/auth/signup', {
+      // Client-side password strength check mirroring API (min 8, upper, lower, number)
+      const strongPasswordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/
+      if (!strongPasswordRegex.test(formData.password)) {
+        alert('Password must be at least 8 characters and include upper, lower, and a number')
+        return
+      }
+
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fullName: formData.fullName,
+          name: formData.fullName.trim(),
           email: formData.email,
           password: formData.password,
         }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create account')
+      const data = await res.json()
+      if (!res.ok) {
+        const serverMsg = Array.isArray(data?.details) && data.details[0]?.message
+          ? data.details[0].message
+          : (data?.error || 'Signup failed')
+        alert(serverMsg)
+        return
       }
 
-      if (data.success && data.token) {
-        // Store the token
-        localStorage.setItem('token', data.token)
-        // Update auth context
-        await signupWithCredentials(
-          formData.fullName,
-          formData.email,
-          formData.password
-        )
-        router.push('/dashboard')
-      } else {
-        setError('Failed to create account. Please try again.')
-      }
-    } catch (error) {
-      console.error('Signup error:', error)
-      setError(error instanceof Error ? error.message : 'An error occurred. Please try again.')
+      // Store JWT for subsequent requests
+      localStorage.setItem('token', data.token)
+
+      // Persist minimal user so AuthContext picks it up on dashboard
+      localStorage.setItem('clariMeet_user', JSON.stringify({
+        id: data.user.id,
+        name: data.user.name || '',
+        email: data.user.email || '',
+        picture: ''
+      }))
+
+      router.push('/dashboard')
+    } catch (err) {
+      alert('Network error')
     } finally {
       setIsLoading(false)
     }

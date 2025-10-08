@@ -11,9 +11,10 @@ import { SimpleGoogleSignIn } from '@/components/ui/simple-google-signin'
 import AnimatedBackground from '@/components/ui/animated-background'
 import { useAuth } from '@/contexts/AuthContext'
 
+
 export default function LoginPage() {
   const router = useRouter()
-  const { loginWithCredentials, isAuthenticated } = useAuth()
+  const { signIn, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
@@ -30,19 +31,47 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError('')
-    
+
     try {
-      const success = await loginWithCredentials(formData.email, formData.password)
-      
-      if (success) {
-        // Redirect to dashboard on successful login
-        router.push('/dashboard')
-      } else {
-        setError('Invalid email or password. Please try again.')
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data?.error || 'Invalid credentials')
+        return
       }
-    } catch (error) {
-      setError('An error occurred. Please try again.')
+
+      // Persist JWT for authenticated API calls from the dashboard
+      localStorage.setItem('token', data.token)
+
+      // Update AuthContext user so dashboard sees you as authenticated
+      signIn({
+        credential: data.user.id,
+        name: data.user.name || '',
+        email: data.user.email || '',
+        picture: '',
+        given_name: data.user.name || '',
+        family_name: ''
+      })
+
+      // Also persist the user for initial load on dashboard
+      localStorage.setItem('clariMeet_user', JSON.stringify({
+        id: data.user.id,
+        name: data.user.name || '',
+        email: data.user.email || '',
+        picture: ''
+      }))
+
+      router.push('/dashboard')
+    } catch (err) {
+      alert('Network error')
     } finally {
       setIsLoading(false)
     }
