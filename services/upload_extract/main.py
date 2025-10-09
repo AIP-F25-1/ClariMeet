@@ -6,12 +6,42 @@ import uuid, shutil, os, re
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from pydantic import BaseModel
 
+import subprocess, shutil
+from clarimeet.audio_probe import probe_wav
+
 # reuse your existing helper
 from clarimeet.ingest import ingest_extract
 
 app = FastAPI(title="ClariMeet — Upload & Audio Extract API")
 
 STORAGE_DEFAULT = Path(os.getenv("CLARIMEET_STORAGE", "storage"))
+
+def _ensure_ffmpeg() -> str:
+    exe = shutil.which("ffmpeg")
+    if not exe:
+        raise RuntimeError("ffmpeg not found in PATH. Install FFmpeg and restart the server shell.")
+    return exe
+
+def _extract_audio_only(video_path: Path, out_wav: Path) -> tuple[int, int, float]:
+    """
+    Extract mono 16 kHz PCM WAV from video_path → out_wav using FFmpeg,
+    then probe the WAV for (sample_rate, channels, duration_sec).
+    """
+    out_wav.parent.mkdir(parents=True, exist_ok=True)
+    exe = _ensure_ffmpeg()
+    cmd = [
+        exe, "-y",
+        "-i", str(video_path),
+        "-vn",
+        "-ac", "1",
+        "-ar", "16000",
+        "-c:a", "pcm_s16le",
+        str(out_wav),
+    ]
+    subprocess.run(cmd, check=True)
+    # probe
+    wav = probe_wav(str(out_wav))
+    return wav.sample_rate, wav.channels, float(wav.duration_sec)
 
 def _slug_or_uuid(s: Optional[str]) -> str:
     if s and s.strip():
@@ -92,24 +122,26 @@ async def extract_audio(
         org = (org_id or "demo").strip()
         storage = Path(storage_root or STORAGE_DEFAULT)
         base = storage / org / meeting_id
-        video_path = _find_original_video(base, meeting_id)
+        video_path = _find_original_video(base, meeting_id)  # already uploaded original
 
-        res = ingest_extract(
-            video_path=str(video_path),
+        audio_dir = base / "audio"
+        out_wav   = audio_dir / f"{meeting_id}.wav"
+
+        sr, ch, dur = _extract_audio_only(video_path, out_wav)
+
+        return ExtractResp(
             org_id=org,
             meeting_id=meeting_id,
+            audio_uri=str(out_wav),
+            sample_rate=sr,
+            channels=ch,
+            duration_sec=dur,
             storage_root=str(storage),
-        )
-        return ExtractResp(
-            org_id=res.org_id,
-            meeting_id=res.meeting_id,
-            audio_uri=res.audio_uri,
-            sample_rate=res.sample_rate,
-            channels=res.channels,
-            duration_sec=res.duration_sec,
-            storage_root=str(res.storage_root),
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=f"not_found: {e}")
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=f"ffmpeg_failed: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"extract_failed: {e}")
+
