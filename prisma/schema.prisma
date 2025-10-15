@@ -15,14 +15,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String     @id @default(cuid())
+  email         String     @unique
   name          String?
   password      String
-  role          Role      @default(USER)
-  verified      Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role          Role       @default(USER)
+  verified      Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  attendees     Attendee[]  // Add this relation
 }
 
 enum Role {
@@ -69,10 +70,12 @@ model Attendee {
   email     String
   name      String?
   role      AttendeeRole @default(PARTICIPANT)
-  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+  meeting   Meeting   @relation(fields: [meetingId], references: [id])
   meetingId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user      User?     @relation(fields: [userId], references: [id])  // Add this relation
+  userId    String?   // Add this field
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@unique([email, meetingId])
 }
