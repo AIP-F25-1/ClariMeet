@@ -63,6 +63,7 @@ model Meeting {
   updatedAt  DateTime @updatedAt
   attendees  Attendee[]
   summaries  Summary[] 
+  actions         Action[]
 }
 
 model Attendee {
@@ -91,6 +92,21 @@ model Summary {
   updatedAt       DateTime  @updatedAt
 }
 
+model Action {
+  id              String       @id @default(cuid())
+  meetingId       String
+  meeting         Meeting      @relation(fields: [meetingId], references: [id])
+  title           String
+  assignee        String
+  dueDate         DateTime
+  status          ActionStatus @default(PENDING)
+  confidence      Float
+  evidenceSpanIds String[]
+  externalLinks   Json?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
 enum Platform {
   GOOGLE_MEET
   ZOOM
@@ -117,4 +133,11 @@ enum SummaryType {
   DECISIONS
   HIGHLIGHTS
   FULL_SUMMARY
+}
+
+enum ActionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
