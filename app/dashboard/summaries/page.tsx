@@ -1,126 +1,155 @@
-"use client"
+'use client'
 
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
-import {
-    BarChart3,
-    Calendar,
-    Clock,
-    Download,
-    Eye,
-    Filter,
-    Search,
-    TrendingUp
-} from "lucide-react"
+import { ProtectedRoute } from "@/components/ui/protected-route"
+import { useAuth } from "@/contexts/AuthContext"
+import { BarChart3, Calendar, Clock, Search } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 
-const mockSummaries = [
-  {
-    id: 1,
-    title: "Team Standup Meeting - Summary",
-    meetingTitle: "Team Standup Meeting",
-    date: "2024-01-15",
-    duration: "15m",
-    keyPoints: 5,
-    status: "Completed"
-  },
-  {
-    id: 2,
-    title: "Client Project Kick-off - Summary",
-    meetingTitle: "Client Project Kick-off",
-    date: "2024-01-14",
-    duration: "45m",
-    keyPoints: 8,
-    status: "Completed"
-  },
-  {
-    id: 3,
-    title: "Weekly Sync - Summary",
-    meetingTitle: "Weekly Sync",
-    date: "2024-01-12",
-    duration: "30m",
-    keyPoints: 6,
-    status: "Completed"
-  }
-]
+interface Meeting {
+  id: string
+  title: string
+  date: string
+  time: string
+  duration: string
+  transcript: boolean
+  summary: boolean
+}
 
 export default function SummariesPage() {
-  return (
-    <DashboardLayoutWithSidebar>
-      <div className="p-4 pl-16 min-h-screen">
-        {/* Page Header */}
-        <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
-                <BarChart3 className="w-10 h-10 text-gray-300" />
-                Summaries
-              </h1>
-              <p className="text-xl text-gray-300">
-                View and manage all your meeting summaries
-              </p>
-            </div>
-          </div>
+  const { user } = useAuth()
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
 
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+  useEffect(() => {
+    fetchSummaries()
+  }, [])
+
+  const fetchSummaries = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/meetings')
+      const data = await response.json()
+      // Filter meetings that have summaries
+      const meetingsWithSummaries = (data.meetings || []).filter((meeting: Meeting) => meeting.summary)
+      setMeetings(meetingsWithSummaries)
+    } catch (error) {
+      console.error('Error fetching summaries:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredMeetings = meetings.filter(meeting =>
+    meeting.title.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  return (
+    <ProtectedRoute>
+      <DashboardLayoutWithSidebar>
+        <div className="p-4 pl-16 min-h-screen">
+          {/* Header */}
+          <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
+                  <BarChart3 className="w-10 h-10 text-gray-300" />
+                  Summaries
+                </h1>
+                <p className="text-xl text-gray-300">
+                  View and manage all your meeting summaries
+                </p>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search summaries..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-800/40 border border-gray-600/30 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50"
               />
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-800/40 border border-gray-600/30 text-gray-300 hover:bg-cyan-500/10 transition-colors">
-              <Filter className="w-5 h-5" />
-              Filter
-            </button>
           </div>
 
           {/* Summaries List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockSummaries.map((summary) => (
-              <div key={summary.id} className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 transition-all duration-300 flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white">{summary.title}</h3>
-                  <div className="flex gap-2">
-                    <button className="p-2 rounded-full bg-cyan-500/20 text-gray-300 hover:bg-cyan-500/30 transition-colors" title="View">
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors" title="Download">
-                      <Download className="w-4 h-4" />
-                    </button>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+              <span className="ml-3 text-gray-300">Loading summaries...</span>
+            </div>
+          ) : filteredMeetings.length === 0 ? (
+            <div className="text-center py-12">
+              <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">
+                {searchTerm ? 'No summaries found' : 'No summaries yet'}
+              </h3>
+              <p className="text-gray-400 mb-4">
+                {searchTerm ? 'Try a different search term' : 'Generate summaries for your meetings to see them here'}
+              </p>
+              {!searchTerm && (
+                <Link
+                  href="/dashboard/meetings"
+                  className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 mx-auto w-fit"
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  Go to Meetings
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredMeetings.map((meeting) => (
+                <Link key={meeting.id} href={`/dashboard/summaries/${meeting.id}`} className="block">
+                  <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 hover:border-gray-600/50 hover:bg-gray-800/80 transition-all duration-300 group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-2">
+                          {meeting.title}
+                        </h3>
+                        <div className="flex items-center gap-4 text-gray-400 text-sm mb-3">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{meeting.date}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span>{meeting.time}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span>Duration: {meeting.duration}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400 flex items-center gap-1">
+                            <BarChart3 className="w-3 h-3" />
+                            Summary Available
+                          </span>
+                          {meeting.transcript && (
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 flex items-center gap-1">
+                              <span>Transcript Available</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-gray-400 group-hover:text-cyan-400 transition-colors">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <p className="text-gray-400 text-sm mb-4 flex-grow">
-                  From: {summary.meetingTitle}
-                </p>
-
-                <div className="flex items-center gap-4 text-gray-400 text-sm mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {summary.date}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {summary.duration}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mt-auto">
-                  <div className="flex items-center gap-1 text-gray-300 text-sm font-medium">
-                    <TrendingUp className="w-4 h-4" />
-                    {summary.keyPoints} key points
-                  </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                    {summary.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-    </DashboardLayoutWithSidebar>
+      </DashboardLayoutWithSidebar>
+    </ProtectedRoute>
   )
 }

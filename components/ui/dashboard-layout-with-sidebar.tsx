@@ -110,9 +110,12 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
               <nav className="space-y-2">
                 {navigationItems.map((item) => (
                   <div key={item.title} className="overflow-hidden">
-                    <a
-                      href={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    <button
+                      onClick={() => {
+                        router.push(item.href);
+                        setIsOpen(false);
+                      }}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 w-full text-left ${
                         item.href === pathname
                           ? 'bg-gray-700/20 text-gray-300 border border-gray-600/30'
                           : 'text-gray-300 hover:bg-gray-700/10 hover:text-gray-200'
@@ -120,7 +123,7 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
                     >
                       <item.icon className="w-5 h-5 shrink-0" />
                       <span className="whitespace-nowrap">{item.title}</span>
-                    </a>
+                    </button>
                   </div>
                 ))}
               </nav>
@@ -174,6 +177,7 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
           onClick={() => setIsOpen(false)}
         />
       )}
+
     </div>
   );
 }

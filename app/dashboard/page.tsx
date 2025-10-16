@@ -1,207 +1,255 @@
-"use client"
+'use client'
 
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
 import { ProtectedRoute } from "@/components/ui/protected-route"
-import { UserProfileCompact } from "@/components/ui/user-profile"
+import { UploadMeetingModal } from "@/components/ui/upload-meeting-modal"
 import { useAuth } from "@/contexts/AuthContext"
-import {
-    BarChart3,
-    Brain,
-    Calendar,
-    Clock,
-    FileText,
-    Sparkles,
-    TrendingUp,
-    Upload
-} from "lucide-react"
+import { BarChart3, Calendar, FileText, Sparkles, Upload, Video } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
-const dashboardOptions = [
-  {
-    id: "meetings",
-    title: "My Meetings",
-    description: "View and manage your meeting recordings",
-    icon: Calendar,
-    href: "/dashboard/meetings",
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-400/30"
-  },
-  {
-    id: "transcriptions",
-    title: "My Transcriptions",
-    description: "Access and edit your meeting transcripts",
-    icon: FileText,
-    href: "/dashboard/transcriptions",
-    color: "from-green-500 to-green-600",
-    bgColor: "bg-green-500/10",
-    borderColor: "border-green-400/30"
-  },
-  {
-    id: "summaries",
-    title: "Summary",
-    description: "AI-generated meeting summaries and insights",
-    icon: BarChart3,
-    href: "/dashboard/summaries",
-    color: "from-purple-500 to-purple-600",
-    bgColor: "bg-purple-500/10",
-    borderColor: "border-purple-400/30"
-  },
-  {
-    id: "ai-tools",
-    title: "AI Tools",
-    description: "Advanced AI features and analysis tools",
-    icon: Brain,
-    href: "/dashboard/ai-tools",
-    color: "from-cyan-500 to-cyan-600",
-    bgColor: "bg-cyan-500/10",
-    borderColor: "border-cyan-400/30"
-  }
-]
-
-const quickStats = [
-  {
-    title: "Total Meetings",
-    value: "12",
-    icon: Calendar,
-    change: "+3 this week",
-    trend: "up"
-  },
-  {
-    title: "Transcripts",
-    value: "8",
-    icon: FileText,
-    change: "+2 this week",
-    trend: "up"
-  },
-  {
-    title: "AI Credits",
-    value: "47",
-    icon: Sparkles,
-    change: "Used 3 today",
-    trend: "neutral"
-  }
-]
+interface Meeting {
+  id: string
+  title: string
+  date: string
+  time: string
+  duration: string
+  transcript: boolean
+  summary: boolean
+}
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalMeetings: 0,
+    transcriptsGenerated: 0,
+    summariesCreated: 0,
+  })
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/meetings')
+      const data = await response.json()
+      const allMeetings: Meeting[] = data.meetings || []
+
+      setMeetings(allMeetings.slice(0, 6)) // Show only 6 recent meetings
+
+      setStats({
+        totalMeetings: allMeetings.length,
+        transcriptsGenerated: allMeetings.filter(m => m.transcript).length,
+        summariesCreated: allMeetings.filter(m => m.summary).length,
+      })
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileUpload = async (file: File, meetingName: string) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('meetingName', meetingName)
+
+    try {
+      const response = await fetch('/api/upload-meeting', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        // Refresh dashboard data
+        await fetchDashboardData()
+        // Don't close modal here - let the modal handle it
+      } else {
+        console.error('Upload failed')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+    }
+  }
 
   return (
     <ProtectedRoute>
       <DashboardLayoutWithSidebar>
-        <div className="space-y-8">
+        <div className="p-4 pl-16 min-h-screen">
           {/* Dashboard Header */}
-          <div className="bg-black/60 backdrop-blur-xl rounded-3xl border border-cyan-400/30 shadow-2xl p-8 md:p-12 hover:bg-black/70 transition-all duration-500 hover:shadow-3xl hover:scale-[1.01]">
-            <div className="flex items-center justify-between mb-8">
+          <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                  Welcome back, {user?.given_name || user?.name}!
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
+                  <Calendar className="w-10 h-10 text-gray-300" />
+                  Dashboard
                 </h1>
                 <p className="text-xl text-gray-300">
-                  Manage your meetings, transcripts, and AI tools
+                  Welcome back, {user?.given_name || user?.name || 'User'}! Here's your overview.
                 </p>
               </div>
-              <UserProfileCompact />
+              <button
+                onClick={() => setIsUploadModalOpen(true)}
+                className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+              >
+                <Upload className="w-5 h-5" />
+                Upload MP4
+              </button>
             </div>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {quickStats.map((stat, index) => (
-                <div key={index} className="bg-black/40 rounded-xl p-6 border border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`p-3 rounded-lg bg-gradient-to-r ${stat.color}`}>
-                      <stat.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <span className={`text-sm font-medium ${
-                      stat.trend === 'up' ? 'text-green-400' : 
-                      stat.trend === 'down' ? 'text-red-400' : 
-                      'text-gray-400'
-                    }`}>
-                      {stat.change}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-1">{stat.value}</h3>
-                  <p className="text-gray-400 text-sm">{stat.title}</p>
+              {loading ? (
+                <div className="col-span-full flex items-center justify-center py-4">
+                  <div className="w-6 h-6 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+                  <span className="ml-3 text-gray-300">Loading stats...</span>
                 </div>
-              ))}
+              ) : (
+                <>
+                  <StatCard title="Total Meetings" value={stats.totalMeetings} icon={Calendar} color="from-blue-500 to-blue-600" />
+                  <StatCard title="Transcripts Generated" value={stats.transcriptsGenerated} icon={FileText} color="from-green-500 to-green-600" />
+                  <StatCard title="Summaries Created" value={stats.summariesCreated} icon={BarChart3} color="from-purple-500 to-purple-600" />
+                </>
+              )}
             </div>
           </div>
 
-          {/* Dashboard Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {dashboardOptions.map((option) => (
-              <Link
-                key={option.id}
-                href={option.href}
-                className="group block"
-              >
-                <div className={`bg-black/60 backdrop-blur-xl rounded-3xl border ${option.borderColor} shadow-2xl p-8 hover:bg-black/70 transition-all duration-500 hover:shadow-3xl hover:scale-[1.02] h-full`}>
-                  <div className="flex flex-col items-center text-center h-full">
-                    <div className={`${option.bgColor} p-4 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                      <div className={`p-3 rounded-lg bg-gradient-to-r ${option.color}`}>
-                        <option.icon className="w-8 h-8 text-white" />
+          {/* Recent Meetings */}
+          <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Video className="w-6 h-6 text-gray-300" />
+                Recent Meetings
+              </h2>
+              <Link href="/dashboard/meetings" className="text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium">
+                View All &rarr;
+              </Link>
+            </div>
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+                <span className="ml-3 text-gray-300">Loading meetings...</span>
+              </div>
+            ) : meetings.length === 0 ? (
+              <div className="text-center py-12">
+                <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">No meetings yet</h3>
+                <p className="text-gray-400 mb-4">Upload your first meeting to get started</p>
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 mx-auto"
+                >
+                  <Upload className="w-5 h-5" />
+                  Upload First Meeting
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {meetings.map((meeting) => (
+                  <Link key={meeting.id} href={`/dashboard/meetings/${meeting.id}`} className="group block">
+                    <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 flex flex-col cursor-pointer h-full">
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{meeting.title}</h3>
+                      <p className="text-gray-400 text-sm mb-4 flex-grow">
+                        {meeting.date} at {meeting.time} • {meeting.duration}
+                      </p>
+                      <div className="flex items-center gap-2 mt-auto">
+                        {meeting.transcript && (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Transcript</span>
+                        )}
+                        {meeting.summary && (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">Summary</span>
+                        )}
                       </div>
                     </div>
-                    
-                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">
-                      {option.title}
-                    </h3>
-                    
-                    <p className="text-gray-300 text-sm leading-relaxed flex-grow">
-                      {option.description}
-                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
 
-                    <div className="mt-6 flex items-center text-cyan-400 text-sm font-medium group-hover:text-white transition-colors">
-                      <span>Explore</span>
-                      <TrendingUp className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </div>
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Link href="/dashboard/meetings" className="group">
+              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600">
+                    <Video className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">My Meetings</h3>
+                    <p className="text-gray-400 text-sm">View all meetings</p>
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Recent Activity */}
-          <div className="bg-black/60 backdrop-blur-xl rounded-3xl border border-cyan-400/30 shadow-2xl p-8 md:p-12 hover:bg-black/70 transition-all duration-500 hover:shadow-3xl hover:scale-[1.01]">
-            <h2 className="text-2xl font-bold text-white mb-6">Recent Activity</h2>
-            
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-cyan-400/20">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600">
-                  <Clock className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-white font-medium">Team Standup Meeting</h4>
-                  <p className="text-gray-400 text-sm">2 hours ago • 5 participants</p>
-                </div>
-                <span className="text-green-400 text-sm">Transcript Ready</span>
               </div>
+            </Link>
 
-              <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-cyan-400/20">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600">
-                  <BarChart3 className="w-5 h-5 text-white" />
+            <Link href="/dashboard/transcriptions" className="group">
+              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-green-500 to-green-600">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Transcriptions</h3>
+                    <p className="text-gray-400 text-sm">View transcripts</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h4 className="text-white font-medium">Weekly Review Summary</h4>
-                  <p className="text-gray-400 text-sm">1 day ago • AI Generated</p>
-                </div>
-                <span className="text-cyan-400 text-sm">View Summary</span>
               </div>
+            </Link>
 
-              <div className="flex items-center gap-4 p-4 bg-black/40 rounded-xl border border-cyan-400/20">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600">
-                  <Upload className="w-5 h-5 text-white" />
+            <Link href="/dashboard/summaries" className="group">
+              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Summaries</h3>
+                    <p className="text-gray-400 text-sm">View summaries</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h4 className="text-white font-medium">Client Presentation</h4>
-                  <p className="text-gray-400 text-sm">3 days ago • Uploaded</p>
-                </div>
-                <span className="text-blue-400 text-sm">Processing</span>
               </div>
-            </div>
+            </Link>
+
+            <Link href="/dashboard/ai-tools" className="group">
+              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-cyan-500 to-cyan-600">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">AI Tools</h3>
+                    <p className="text-gray-400 text-sm">AI features</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
+
+        <UploadMeetingModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          onUpload={handleFileUpload}
+        />
       </DashboardLayoutWithSidebar>
     </ProtectedRoute>
   )
 }
+
+const StatCard = ({ title, value, icon: Icon, color }: any) => (
+  <div className="bg-black/40 rounded-xl p-6 border border-cyan-400/20 hover:border-cyan-400/40 transition-all duration-300">
+    <div className="flex items-center justify-between mb-4">
+      <div className={`p-3 rounded-lg bg-gradient-to-r ${color}`}>
+        <Icon className="w-6 h-6 text-white" />
+      </div>
+    </div>
+    <h3 className="text-2xl font-bold text-white mb-1">{value}</h3>
+    <p className="text-gray-400 text-sm">{title}</p>
+  </div>
+)

@@ -1,9 +1,10 @@
+import { DashboardDock } from "@/components/ui/dashboard-dock";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { Analytics } from "@vercel/analytics/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
   title: "ClariMeet - Video Transcript Player",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <AuthProvider>
           {children}
+          <DashboardDock />
           <Analytics />
         </AuthProvider>
       </body>
