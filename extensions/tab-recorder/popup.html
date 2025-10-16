@@ -1,0 +1,191 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Tab Audio Recorder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #0f172a;
+            --muted: #64748b;
+            --accent: #3b82f6;
+            --accent-fg: #ffffff;
+            --card: #f8fafc;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --ring: #93c5fd;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b1020;
+                --fg: #e5e7eb;
+                --muted: #9aa3b2;
+                --accent: #60a5fa;
+                --accent-fg: #0b1020;
+                --card: #0f172a;
+                --border: #1f2937;
+                --danger: #f87171;
+                --ring: #60a5fa;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 14px;
+            width: 320px;
+            background: var(--bg);
+            color: var(--fg);
+            font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+        }
+
+        h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            letter-spacing: .2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--muted);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+            transition: all .25s ease;
+        }
+
+        body.recording .dot {
+            background: var(--danger);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--fg);
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, .05);
+        }
+
+        button:hover {
+            border-color: var(--ring);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, .15);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--accent), calc(100% - 10px), color-mix(in oklab, var(--accent) 80%, #000 20%));
+            color: var(--accent-fg);
+            border: 0;
+        }
+
+        .btn-danger {
+            background: linear-gradient(180deg, var(--danger), calc(100% - 10px), color-mix(in oklab, var(--danger) 80%, #000 20%));
+            color: #fff;
+            border: 0;
+        }
+
+        button[disabled] {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            min-height: 1.2em;
+        }
+
+        .hint {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 11px;
+            border-top: 1px dashed var(--border);
+            padding-top: 8px;
+        }
+
+        .pill {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        body.recording .pill {
+            border-color: transparent;
+            color: #fff;
+            background: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h3><span class="dot" aria-hidden="true"></span> Tab Audio Recorder</h3>
+
+        <div class="row" style="margin-top:8px">
+            <button id="start" class="btn-primary">Start (this tab)</button>
+            <button id="stop" class="btn-danger" disabled>Stop</button>
+        </div>
+
+        <div class="status" id="status" aria-live="polite">Idle</div>
+        <div class="hint">Keep this popup open while recording. Your audio will download when you stop.</div>
+
+        <div class="footer">
+            <span class="pill" id="pill">Ready</span>
+            <span id="tabName" title="Current tab"
+                style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+        </div>
+    </div>
+
+    <!-- Hidden player to let you hear the captured stream while recording -->
+    <audio id="monitorAudio" style="display:none"></audio>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
