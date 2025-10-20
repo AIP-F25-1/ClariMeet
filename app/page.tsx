@@ -47,18 +47,17 @@ export default function Home() {
                 />
 
                 <p className="text-xl text-gray-300 mb-8 text-pretty max-w-2xl leading-relaxed lg:mx-0 mx-auto">
-                  Experience seamless video playback with synchronized transcripts, live captions, and intelligent
-                  navigation. Perfect for accessibility and enhanced viewing.
+                  Never miss a detail from your meetings. ClariMeet automatically captures, organizes, and summarizes your conversations so you can focus on what matters.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center mb-8">
                   <div className="flex items-center gap-2 text-sm text-green-400">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    Live sync enabled
+                    Easy to use
                   </div>
                   <div className="flex items-center gap-2 text-sm text-cyan-400">
                     <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                    Mock data ready
+                    Secure & private
                   </div>
                 </div>
 
@@ -150,9 +149,9 @@ export default function Home() {
           {/* Features Section */}
           <section id="features">
             <div className="bg-black/60 backdrop-blur-xl rounded-3xl border border-cyan-400/30 shadow-2xl p-8 md:p-12 ">
-              <h2 className="text-3xl font-bold text-center text-cyan-400 mb-12">Features</h2>
+              <h2 className="text-3xl font-bold text-center text-cyan-400 mb-12">Why Choose ClariMeet?</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div id="live-captions" className="text-center p-8 rounded-2xl bg-black/60 backdrop-blur-lg border border-cyan-400/40 shadow-lg ">
+                <div id="record-meetings" className="text-center p-8 rounded-2xl bg-black/60 backdrop-blur-lg border border-cyan-400/40 shadow-lg ">
                   <div className="w-12 h-12 bg-cyan-400/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -163,13 +162,13 @@ export default function Home() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Live Captions</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">Record Everything</h3>
                   <p className="text-gray-300 text-sm">
-                    Real-time caption overlay with speaker identification and smooth animations.
+                    Capture every word from your meetings, calls, and presentations with just one click.
                   </p>
                 </div>
 
-                <div id="transcript-sync" className="text-center p-8 rounded-2xl bg-black/60 backdrop-blur-lg border border-cyan-400/40 shadow-lg ">
+                <div id="smart-summaries" className="text-center p-8 rounded-2xl bg-black/60 backdrop-blur-lg border border-cyan-400/40 shadow-lg ">
                   <div className="w-12 h-12 bg-cyan-400/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -180,26 +179,26 @@ export default function Home() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Smart Sync</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">Smart Summaries</h3>
                   <p className="text-gray-300 text-sm">
-                    Intelligent timestamp matching with smooth highlighting and auto-scroll.
+                    Get instant summaries of your meetings with key points, action items, and decisions highlighted.
                   </p>
                 </div>
 
-                <div id="video-controls" className="text-center p-8 rounded-2xl bg-black/60 backdrop-blur-lg border border-cyan-400/40 shadow-lg ">
+                <div id="search-find" className="text-center p-8 rounded-2xl bg-black/60 backdrop-blur-lg border border-cyan-400/40 shadow-lg ">
                   <div className="w-12 h-12 bg-cyan-400/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Easy Integration</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">Find Anything Fast</h3>
                   <p className="text-gray-300 text-sm">
-                    Simple API with mock data support and flexible configuration options.
+                    Search across all your meetings to find exactly what was said, when it was said, and by whom.
                   </p>
                 </div>
               </div>

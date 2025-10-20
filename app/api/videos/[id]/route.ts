@@ -1,28 +1,18 @@
 import { readFile } from 'fs/promises'
 import { NextRequest, NextResponse } from 'next/server'
-import { join } from 'path'
+import path from 'path'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const meetingsFile = join(process.cwd(), 'data', 'meetings.json')
+    // In a real app, you would fetch the video from storage based on meeting ID
+    // For now, return a placeholder video
+    const placeholderPath = path.join(process.cwd(), 'public', 'placeholder.mp4')
     
     try {
-      const data = await readFile(meetingsFile, 'utf-8')
-      const meetings = JSON.parse(data)
-      const meeting = meetings.find((m: any) => m.id === params.id)
-      
-      if (!meeting) {
-        return NextResponse.json(
-          { error: 'Meeting not found' },
-          { status: 404 }
-        )
-      }
-      
-      const videoPath = meeting.filePath
-      const videoBuffer = await readFile(videoPath)
+      const videoBuffer = await readFile(placeholderPath)
       
       return new NextResponse(videoBuffer, {
         headers: {
@@ -30,16 +20,17 @@ export async function GET(
           'Content-Length': videoBuffer.length.toString(),
         },
       })
-    } catch (error) {
+    } catch (fileError) {
+      // If placeholder doesn't exist, return 404
       return NextResponse.json(
         { error: 'Video not found' },
         { status: 404 }
       )
     }
   } catch (error) {
-    console.error('Error streaming video:', error)
+    console.error('Error fetching video:', error)
     return NextResponse.json(
-      { error: 'Failed to stream video' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
