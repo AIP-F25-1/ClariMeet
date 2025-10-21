@@ -1,10 +1,12 @@
 'use client'
 
+import { AnimatedDashboardCards } from "@/components/ui/animated-dashboard-cards"
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
+import { Meteors } from "@/components/ui/meteors"
 import { ProtectedRoute } from "@/components/ui/protected-route"
 import { UploadMeetingModal } from "@/components/ui/upload-meeting-modal"
 import { useAuth } from "@/contexts/AuthContext"
-import { BarChart3, Calendar, FileText, Sparkles, Upload, Video } from "lucide-react"
+import { BarChart3, Calendar, FileText, Upload, Video } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -82,8 +84,11 @@ export default function Dashboard() {
       <DashboardLayoutWithSidebar>
         <div className="p-4 pl-16 min-h-screen">
           {/* Dashboard Header */}
-          <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="relative bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6 overflow-hidden">
+            <div className="absolute inset-0 z-0">
+              <Meteors number={30} />
+            </div>
+            <div className="flex items-center justify-between mb-6 relative z-10">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
                   <Calendar className="w-10 h-10 text-gray-300" />
@@ -103,7 +108,7 @@ export default function Dashboard() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative z-10">
               {loading ? (
                 <div className="col-span-full flex items-center justify-center py-4">
                   <div className="w-6 h-6 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
@@ -172,63 +177,10 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Link href="/dashboard/meetings" className="group">
-              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600">
-                    <Video className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">My Meetings</h3>
-                    <p className="text-gray-400 text-sm">View all meetings</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/dashboard/transcriptions" className="group">
-              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-green-500 to-green-600">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Transcriptions</h3>
-                    <p className="text-gray-400 text-sm">View transcripts</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/dashboard/summaries" className="group">
-              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600">
-                    <BarChart3 className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Summaries</h3>
-                    <p className="text-gray-400 text-sm">View summaries</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/dashboard/ai-tools" className="group">
-              <div className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 hover:bg-gray-800/60 transition-all duration-300 group-hover:scale-105">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-cyan-500 to-cyan-600">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">AI Tools</h3>
-                    <p className="text-gray-400 text-sm">AI features</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
+          {/* Animated Dashboard Cards */}
+          <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-24">
+            <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
+            <AnimatedDashboardCards />
           </div>
         </div>
 

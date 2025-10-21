@@ -3,10 +3,12 @@
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
 import { LoadingPopup } from "@/components/ui/loading-popup"
 import { ProtectedRoute } from "@/components/ui/protected-route"
+import { VideoPlayer } from "@/components/ui/video-player"
 import { useAuth } from "@/contexts/AuthContext"
 import {
     ArrowLeft,
     BarChart3,
+    Calendar,
     Check,
     Clock,
     Copy,
@@ -34,6 +36,8 @@ interface Meeting {
   summary: boolean
   transcriptContent?: string
   summaryContent?: string
+  videoUrl?: string
+  thumbnailUrl?: string
 }
 
 export default function MeetingDetailPage() {
@@ -152,6 +156,30 @@ export default function MeetingDetailPage() {
     }
   }
 
+  const handleDeleteMeeting = async () => {
+    if (!confirm(`Are you sure you want to delete "${meeting?.title}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/meetings/${params.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        console.log('✅ Meeting deleted successfully')
+        // Navigate back to meetings list
+        router.push('/dashboard/meetings')
+      } else {
+        console.error('❌ Failed to delete meeting')
+        alert('Failed to delete meeting. Please try again.')
+      }
+    } catch (error) {
+      console.error('❌ Error deleting meeting:', error)
+      alert('Error deleting meeting. Please try again.')
+    }
+  }
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
   }
@@ -250,6 +278,15 @@ export default function MeetingDetailPage() {
                 <button className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors">
                   <Settings className="w-5 h-5 text-gray-300" />
                 </button>
+                <button 
+                  onClick={handleDeleteMeeting}
+                  className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
+                  title="Delete Meeting"
+                >
+                  <svg className="w-5 h-5 text-gray-300 group-hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -315,14 +352,29 @@ export default function MeetingDetailPage() {
             {activeTab === 'video' && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-white mb-4">Video Player</h2>
-                <div className="bg-gray-900 rounded-xl overflow-hidden">
-                  <video
-                    controls
-                    className="w-full h-auto"
-                    src={`/api/videos/${meeting.id}`}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
+                <div className="bg-gray-900 rounded-xl overflow-hidden p-4">
+                  {meeting.videoUrl ? (
+                    <VideoPlayer
+                      videoUrl={meeting.videoUrl}
+                      thumbnailUrl={meeting.thumbnailUrl}
+                      title={meeting.title}
+                      className="w-full"
+                    />
+                  ) : (
+                    <div className="bg-gray-800 rounded-lg p-8 text-center">
+                      <div className="text-yellow-400 mb-4">
+                        <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold text-white mb-2">No Video URL Available</h3>
+                      <p className="text-gray-400 mb-4">The video URL is missing from the meeting data</p>
+                      <div className="text-sm text-gray-500">
+                        <p>Meeting ID: {meeting.id}</p>
+                        <p>Video URL: {meeting.videoUrl || 'Not available'}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -470,7 +522,6 @@ export default function MeetingDetailPage() {
           <LoadingPopup
             isOpen={isGeneratingTranscript}
             progress={transcriptProgress}
-            title="Generating Transcript"
             message="Processing audio with Whisper AI..."
           />
         )}
@@ -479,7 +530,6 @@ export default function MeetingDetailPage() {
           <LoadingPopup
             isOpen={isGeneratingSummary}
             progress={summaryProgress}
-            title="Generating Summary"
             message="Creating summary with TinyLlama AI..."
           />
         )}

@@ -391,4 +391,23 @@
       transform: rotate(240deg) scale(0.9);
     }
   }
+
+  /* Meteor animation */
+  @keyframes meteor-effect {
+    0% {
+      transform: rotate(45deg) translateX(0);
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(45deg) translateX(800px);
+      opacity: 0;
+    }
+  }
+
+  .animate-meteor-effect {
+    animation: meteor-effect linear infinite;
+  }
 }

@@ -165,7 +165,7 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
 
       {/* Main Content */}
       <div className="w-full flex justify-center">
-        <div className="w-full max-w-6xl">
+        <div className="w-full max-w-6xl pb-24">
           {children}
         </div>
       </div>

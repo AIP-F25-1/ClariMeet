@@ -17,11 +17,27 @@ export function UploadMeetingModal({ isOpen, onClose, onUpload }: UploadMeetingM
   const [meetingName, setMeetingName] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
+      // Check file size (100MB limit)
+      const maxSize = 100 * 1024 * 1024 // 100MB
+      if (selectedFile.size > maxSize) {
+        setError('File too large. Maximum size is 100MB. Please compress your video or try a smaller file.')
+        return
+      }
+      
+      // Check file type
+      if (!selectedFile.type.startsWith('video/')) {
+        setError('Please select a video file.')
+        return
+      }
+      
       setFile(selectedFile)
+      setError(null) // Clear any previous errors
       if (!meetingName) {
         setMeetingName(selectedFile.name.replace(/\.[^/.]+$/, ''))
       }
@@ -44,8 +60,22 @@ export function UploadMeetingModal({ isOpen, onClose, onUpload }: UploadMeetingM
     setDragActive(false)
     
     const droppedFile = e.dataTransfer.files?.[0]
-    if (droppedFile && droppedFile.type.startsWith('video/')) {
+    if (droppedFile) {
+      // Check file size (100MB limit)
+      const maxSize = 100 * 1024 * 1024 // 100MB
+      if (droppedFile.size > maxSize) {
+        setError('File too large. Maximum size is 100MB. Please compress your video or try a smaller file.')
+        return
+      }
+      
+      // Check file type
+      if (!droppedFile.type.startsWith('video/')) {
+        setError('Please select a video file.')
+        return
+      }
+      
       setFile(droppedFile)
+      setError(null) // Clear any previous errors
       if (!meetingName) {
         setMeetingName(droppedFile.name.replace(/\.[^/.]+$/, ''))
       }
@@ -57,15 +87,29 @@ export function UploadMeetingModal({ isOpen, onClose, onUpload }: UploadMeetingM
     if (!file || !meetingName.trim()) return
 
     setIsUploading(true)
+    setError(null)
+    setUploadProgress(0)
+    
+    // Simulate progress for better UX
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => Math.min(prev + 10, 90))
+    }, 1000)
+    
     try {
       await onUpload(file, meetingName.trim())
+      setUploadProgress(100)
+      // Success - reset and close
       setFile(null)
       setMeetingName('')
-      onClose()
+      setError(null)
+      setTimeout(() => onClose(), 500) // Small delay to show completion
     } catch (error) {
       console.error('Upload failed:', error)
+      setError(error instanceof Error ? error.message : 'Upload failed. Please try again.')
     } finally {
+      clearInterval(progressInterval)
       setIsUploading(false)
+      setUploadProgress(0)
     }
   }
 
@@ -73,6 +117,7 @@ export function UploadMeetingModal({ isOpen, onClose, onUpload }: UploadMeetingM
     if (!isUploading) {
       setFile(null)
       setMeetingName('')
+      setError(null)
       onClose()
     }
   }
@@ -141,7 +186,7 @@ export function UploadMeetingModal({ isOpen, onClose, onUpload }: UploadMeetingM
           <div className="space-y-2">
             <Label className="text-gray-300">Video File</Label>
             <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+              className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
                 dragActive
                   ? 'border-cyan-400 bg-cyan-400/10'
                   : 'border-gray-600/50 hover:border-gray-500'
@@ -158,6 +203,14 @@ export function UploadMeetingModal({ isOpen, onClose, onUpload }: UploadMeetingM
                   <p className="text-gray-400 text-sm">
                     {(file.size / (1024 * 1024)).toFixed(1)} MB
                   </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setFile(null)}
+                    className="mt-2 border-gray-600/50 text-gray-300 hover:bg-gray-800/50"
+                  >
+                    Change File
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -171,10 +224,30 @@ export function UploadMeetingModal({ isOpen, onClose, onUpload }: UploadMeetingM
                 accept="video/*"
                 onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                required
               />
             </div>
           </div>
+
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {isUploading && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-300">
+                <span>Uploading...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button

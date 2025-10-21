@@ -1,6 +1,7 @@
 'use client'
 
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
+import { Meteors } from "@/components/ui/meteors"
 import { ProtectedRoute } from "@/components/ui/protected-route"
 import { useAuth } from "@/contexts/AuthContext"
 import { BarChart3, Calendar, Clock, Search } from "lucide-react"
@@ -51,8 +52,9 @@ export default function SummariesPage() {
       <DashboardLayoutWithSidebar>
         <div className="p-4 pl-16 min-h-screen">
           {/* Header */}
-          <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="relative bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6 overflow-hidden">
+            <Meteors number={30} />
+            <div className="flex items-center justify-between mb-6 relative z-10">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
                   <BarChart3 className="w-10 h-10 text-gray-300" />

@@ -1,6 +1,7 @@
 'use client'
 
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
+import { Meteors } from "@/components/ui/meteors"
 import { ProtectedRoute } from "@/components/ui/protected-route"
 import { UploadMeetingModal } from "@/components/ui/upload-meeting-modal"
 import { useAuth } from "@/contexts/AuthContext"
@@ -14,8 +15,12 @@ interface Meeting {
   date: string
   time: string
   duration: string
+  participants?: string[]
+  status?: string
   transcript: boolean
   summary: boolean
+  videoUrl?: string
+  thumbnailUrl?: string
 }
 
 export default function MeetingsPage() {
@@ -53,14 +58,47 @@ export default function MeetingsPage() {
         body: formData,
       })
 
+      const data = await response.json()
+
       if (response.ok) {
+        console.log('✅ Upload successful:', data.message)
+        // Refresh the meetings list to show the newly uploaded meeting
         await fetchMeetings()
-        // Don't close modal here - let the modal handle it
+        // Modal will close automatically via the component
       } else {
-        console.error('Upload failed')
+        console.error('❌ Upload failed:', data.error)
+        throw new Error(data.error || 'Upload failed')
       }
     } catch (error) {
-      console.error('Upload error:', error)
+      console.error('❌ Upload error:', error)
+      throw error // Re-throw so modal can handle it
+    }
+  }
+
+  const handleDeleteMeeting = async (meetingId: string) => {
+    const meeting = meetings.find(m => m.id === meetingId)
+    const meetingTitle = meeting?.title || 'this meeting'
+    
+    if (!confirm(`Are you sure you want to delete "${meetingTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/meetings/${meetingId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        // Refresh the meetings list
+        await fetchMeetings()
+        console.log('✅ Meeting deleted successfully')
+      } else {
+        console.error('❌ Failed to delete meeting')
+        alert('Failed to delete meeting. Please try again.')
+      }
+    } catch (error) {
+      console.error('❌ Error deleting meeting:', error)
+      alert('Error deleting meeting. Please try again.')
     }
   }
 
@@ -73,8 +111,11 @@ export default function MeetingsPage() {
       <DashboardLayoutWithSidebar>
         <div className="p-4 pl-16 min-h-screen">
           {/* Header */}
-          <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="relative bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 md:p-8 mb-6 overflow-hidden">
+            <div className="absolute inset-0 z-0">
+              <Meteors number={30} />
+            </div>
+            <div className="flex items-center justify-between mb-6 relative z-10">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
                   <Video className="w-10 h-10 text-gray-300" />
@@ -134,13 +175,27 @@ export default function MeetingsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredMeetings.map((meeting) => (
-                <Link key={meeting.id} href={`/dashboard/meetings/${meeting.id}`} className="group block">
-                  <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 hover:border-gray-600/50 hover:bg-gray-800/80 transition-all duration-300 group-hover:scale-105">
+                <div key={meeting.id} className="group relative">
+                  <Link href={`/dashboard/meetings/${meeting.id}`} className="block">
+                    <div className="bg-gray-800/60 backdrop-blur-xl rounded-3xl border border-gray-600/30 shadow-2xl p-6 hover:border-gray-600/50 hover:bg-gray-800/80 transition-all duration-300 group-hover:scale-105">
                     {/* Meeting Thumbnail */}
                     <div className="relative mb-4">
-                      <div className="w-full h-48 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center">
-                        <Play className="w-12 h-12 text-gray-400 group-hover:text-cyan-400 transition-colors" />
-                      </div>
+                      {meeting.thumbnailUrl ? (
+                        <div className="w-full h-48 rounded-xl overflow-hidden relative">
+                          <img 
+                            src={meeting.thumbnailUrl} 
+                            alt={meeting.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                            <Play className="w-12 h-12 text-white group-hover:text-cyan-400 transition-colors" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center">
+                          <Play className="w-12 h-12 text-gray-400 group-hover:text-cyan-400 transition-colors" />
+                        </div>
+                      )}
                       <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1">
                         <span className="text-white text-sm font-medium">{meeting.duration}</span>
                       </div>
@@ -180,7 +235,23 @@ export default function MeetingsPage() {
                       </div>
                     </div>
                   </div>
-                </Link>
+                  </Link>
+                  
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleDeleteMeeting(meeting.id)
+                    }}
+                    className="absolute top-3 right-3 p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                    title="Delete Meeting"
+                  >
+                    <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               ))}
             </div>
           )}
