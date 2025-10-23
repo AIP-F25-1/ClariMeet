@@ -234,3 +234,8 @@ yarn-error.log*
 next-env.d.ts
 /lib/generated/prisma
 next-env.d.ts
+
+# prisma (ensure SQLite files are ignored; project uses PostgreSQL)
+prisma/*.db
+prisma/*.sqlite
+prisma/*.sqlite3
