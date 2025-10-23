@@ -159,7 +159,7 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
+# pyre type checker
 .pyre/
 
 # pytype static type analyzer
@@ -201,12 +201,6 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# Marimo
-marimo/_static/
-marimo/_lsp/
-__marimo__/
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 
@@ -239,3 +233,6 @@ next-env.d.ts
 prisma/*.db
 prisma/*.sqlite
 prisma/*.sqlite3
+
+# local postgres bind folder (no longer used)
+pgdata/

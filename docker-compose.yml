@@ -1,14 +1,17 @@
 version: '3.8'
+
 services:
   postgres:
-    image: postgres:15-alpine          # ✅ small, stable, includes initdb & psql
+    image: postgres:latest
     container_name: clarimeet-db
-    restart: always
     environment:
       POSTGRES_USER: clarimeet_user
       POSTGRES_PASSWORD: clarimeet_password
       POSTGRES_DB: clarimeet_db
     ports:
-      - "5432:5432"
+      - "5556:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
