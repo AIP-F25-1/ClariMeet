@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>ClariMeet — Upload & Transcribe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #0f172a;
+            --ink: #e5e7eb;
+            --muted: #a1a1aa;
+            --acc: #38bdf8;
+            --border: #1f2937;
+        }
+
+        html,
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            margin: 0
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 16px
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 24px
+        }
+
+        label {
+            display: block;
+            margin: 8px 0 4px;
+            color: #b9e5ff
+        }
+
+        input,
+        select,
+        button {
+            font: inherit
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #0b1328;
+            color: var(--ink)
+        }
+
+        input[type="file"] {
+            margin-top: 8px
+        }
+
+        button {
+            background: var(--acc);
+            color: #021421;
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .log {
+            font-family: ui-monospace, Consolas, Menlo, monospace;
+            font-size: 13px;
+            background: #0b1328;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            height: 160px;
+            overflow: auto;
+            white-space: pre-wrap
+        }
+
+        a {
+            color: #93c5fd;
+            text-decoration: none
+        }
+
+        a:hover {
+            text-decoration: underline
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>ClariMeet — Upload & Transcribe</h1>
+        <div class="card">
+            <div class="row">
+                <div>
+                    <label>Organization</label>
+                    <input id="org" type="text" value="demo" />
+                </div>
+                <div>
+                    <label>Meeting ID</label>
+                    <input id="meeting" type="text" placeholder="e.g. team-sync-2025-09-25" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>Model</label>
+                    <select id="model">
+                        <option value="tiny">tiny</option>
+                        <option value="base">base</option>
+                        <option value="small">small</option>
+                        <option value="medium">medium</option>
+                        <option value="large">large</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Max TL;DR bullets</label>
+                    <select id="bullets">
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
+                    </select>
+                </div>
+            </div>
+
+            <label>Video/Audio file (mp4/mp3/wav/ogg…)</label>
+            <input id="file" type="file" accept="video/*,audio/*" />
+
+            <div style="margin-top:12px">
+                <button id="go">Run pipeline</button>
+                <span id="status" class="muted" style="margin-left:10px"></span>
+            </div>
+
+            <div class="log" id="log"></div>
+
+            <div id="result" style="display:none; margin-top:8px">
+                <b>Report: </b><a id="reportLink" href="#" target="_blank" rel="noopener">open</a>
+            </div>
+        </div>
+
+        <p class="muted">This page calls your local services (8001, 8004, 8006) via the dash on 8010.</p>
+    </div>
+
+    <script>
+        const el = (id) => document.getElementById(id);
+        const log = (m) => { const box = el('log'); box.textContent += m + "\n"; box.scrollTop = box.scrollHeight; }
+        const setBusy = (b) => { el('go').disabled = b; el('status').textContent = b ? "Working…" : ""; }
+
+        async function run() {
+            const file = el('file').files[0];
+            const org = el('org').value.trim() || "demo";
+            const meeting = el('meeting').value.trim();
+            const model = el('model').value;
+            const bullets = el('bullets').value;
+            if (!file) { alert("Pick a file"); return; }
+            if (!meeting) { alert("Enter a meeting id"); return; }
+
+            setBusy(true);
+            el('result').style.display = 'none';
+            el('log').textContent = "";
+
+            try {
+                log("Uploading…");
+                const fd = new FormData();
+                fd.append("org_id", org);
+                fd.append("meeting_id", meeting);
+                fd.append("model", model);
+                fd.append("max_bullets", bullets);
+                fd.append("file", file);
+
+                const resp = await fetch("/ui/run", { method: "POST", body: fd });
+                if (!resp.ok) {
+                    const text = await resp.text();
+                    log("Error: " + text);
+                    alert("Failed: " + text);
+                    setBusy(false);
+                    return;
+                }
+                const j = await resp.json();
+                log("Pipeline OK.");
+                log("Speakers: " + (j.speakers || []).join(", "));
+                log("Words (aligned): " + (j.words ?? "n/a"));
+                log("VTT: " + (j.vtt_file || "n/a"));
+
+                const report = j.report_url;
+                el('reportLink').href = report;
+                el('result').style.display = 'block';
+                log("Report URL:\n" + report);
+
+            } catch (e) {
+                console.error(e);
+                log("Exception: " + e);
+                alert("Exception: " + e);
+            } finally {
+                setBusy(false);
+            }
+        }
+
+        el('go').addEventListener('click', run);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Core runtime
+fastapi==0.110.0
+uvicorn[standard]==0.30.1
+pydantic==1.10.15
+python-multipart==0.0.9
+jinja2==3.1.4
+
+# Audio / ML stack (CPU-universal)
+torch==2.8.0+cpu
+torchaudio==2.8.0+cpu
+numpy==1.26.4
+soundfile==0.12.1
+
+# Speech & diarization
+openai-whisper==20250625
+pyannote.audio==3.1.1
+speechbrain==1.0.3
+torch-pitch-shift==1.2.5
+librosa==0.10.2.post1
+numba==0.59.1
+
+# Utils
+tqdm==4.66.5
+requests==2.32.3
+typing_extensions==4.12.2

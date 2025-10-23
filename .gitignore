@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+
+# App data / generated
+storage/
+outputs/
+dist/
+build/
+*.log
+
+# Secrets (keep only clarimeet.example.json in git)
+clarimeet.json
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
