@@ -9,19 +9,6 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  name          String?
-  password      String
-  role          Role       @default(USER)
-  verified      Boolean    @default(false)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  attendees     Attendee[]  // Add this relation
-  role          Role      @default(USER)
-  verified      Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
   id             String            @id @default(cuid())
   email          String            @unique
   name           String?
@@ -53,98 +40,6 @@ model PasswordResetToken {
   @@unique([email, token])
 }
 
-model Meeting {
-  id         String    @id @default(cuid())
-  orgId      String
-  title      String
-  startedAt  DateTime
-  endedAt    DateTime?
-  platform   Platform
-  status     MeetingStatus @default(SCHEDULED)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  attendees  Attendee[]
-  summaries  Summary[] 
-  actions         Action[]
-}
-
-model Attendee {
-  id        String   @id @default(cuid())
-  email     String
-  name      String?
-  role      AttendeeRole @default(PARTICIPANT)
-  meeting   Meeting   @relation(fields: [meetingId], references: [id])
-  meetingId String
-  user      User?     @relation(fields: [userId], references: [id])  // Add this relation
-  userId    String?   // Add this field
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@unique([email, meetingId])
-}
-
-model Summary {
-  id              String    @id @default(cuid())
-  meetingId       String
-  meeting         Meeting   @relation(fields: [meetingId], references: [id])
-  type            SummaryType
-  content         String    @db.Text
-  evidenceSpanIds String[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
-
-model Action {
-  id              String       @id @default(cuid())
-  meetingId       String
-  meeting         Meeting      @relation(fields: [meetingId], references: [id])
-  title           String
-  assignee        String
-  dueDate         DateTime
-  status          ActionStatus @default(PENDING)
-  confidence      Float
-  evidenceSpanIds String[]
-  externalLinks   Json?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-}
-
-enum Platform {
-  GOOGLE_MEET
-  ZOOM
-  TEAMS
-  OTHER
-}
-
-enum MeetingStatus {
-  SCHEDULED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum AttendeeRole {
-  HOST
-  CO_HOST
-  PARTICIPANT
-}
-
-enum SummaryType {
-  KEY_POINTS
-  ACTION_ITEMS
-  DECISIONS
-  HIGHLIGHTS
-  FULL_SUMMARY
-}
-
-enum ActionStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-// Maps to your existing table transcript_chunks(id, meeting_id, t0, t1, text, speaker_id, confidence, lang)
-// Adds userId to enable filtering by authenticated user
 model TranscriptChunk {
   id         String   @id @default(cuid())
   meetingId  String   @map("meeting_id")
@@ -161,6 +56,36 @@ model TranscriptChunk {
 
   @@index([userId, createdAt])
   @@map("transcript_chunks")
+}
+
+model Meeting {
+  id         String    @id @default(cuid())
+  orgId      String    @map("org_id")
+  title      String
+  startedAt  DateTime  @map("started_at")
+  endedAt    DateTime? @map("ended_at")
+  platform   String
+  attendees  String[]
+  status     String
+
+  decisions  Decision[]
+
+  @@map("meetings")
+}
+
+model Decision {
+  id               String    @id @default(cuid())
+  meetingId        String    @map("meeting_id")
+  statement        String
+  rationale        String
+  evidenceSpanIds  String[]  @map("evidence_span_ids")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  meeting          Meeting   @relation(fields: [meetingId], references: [id])
+
+  @@index([meetingId, createdAt])
+  @@map("decisions")
 }
 
 enum Role {
