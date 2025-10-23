@@ -8,12 +8,28 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 import httpx
 
+from fastapi.middleware.cors import CORSMiddleware
 # Ports of your existing services
 PORT_UPLOAD = int(os.getenv("PORT_UPLOAD", 8001))   # videos: upload/extract
 PORT_PIPE   = int(os.getenv("PORT_PIPE",   8006))   # one-shot pipeline
 PORT_REPORT = int(os.getenv("PORT_REPORT", 8004))   # export/report (serves report.html)
 
 app = FastAPI(title="ClariMeet — Dash")
+
+# Allow the extension + localhost to call this service
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "chrome-extension://*",
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://localhost:8010",
+        "http://127.0.0.1:8010",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Serve the static index
 STATIC_DIR = Path(__file__).parent / "static"
