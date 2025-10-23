@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logAudit } from "@/lib/audit"
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest) {
     // - Connect to external services
     // - Store user consent
 
+    await logAudit({ request, userId: body.user_id ?? null, action: "ENABLE_CLARIMEET", entityType: "Onboarding", entityId: null, metadata: body })
     return NextResponse.json({
       success: true,
       message: 'ClariMeet enabled successfully',
@@ -28,6 +30,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Handle error silently for performance
     
+    try { await logAudit({ request, userId: null, action: "ENABLE_CLARIMEET_ERROR", entityType: "System", entityId: null, metadata: { error: (error as Error).message } }) } catch {}
     return NextResponse.json(
       { 
         success: false, 

@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { compare } from "bcrypt"
 import { sign } from "jsonwebtoken"
+import { logAudit } from "@/lib/audit"
 
 // Validation schema
 const loginSchema = z.object({
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
         })
 
         if (!user) {
+            await logAudit({ request, userId: null, action: "AUTH_LOGIN_FAILED", entityType: "User", entityId: null, metadata: { email } })
             return NextResponse.json(
                 { error: "Invalid credentials" },
                 { status: 401 }
@@ -48,6 +50,7 @@ export async function POST(request: Request) {
         // Verify password
         const isPasswordValid = await compare(password, user.password)
         if (!isPasswordValid) {
+            await logAudit({ request, userId: user.id, action: "AUTH_LOGIN_FAILED", entityType: "User", entityId: user.id, metadata: { email } })
             return NextResponse.json(
                 { error: "Invalid credentials" },
                 { status: 401 }
@@ -66,6 +69,7 @@ export async function POST(request: Request) {
         )
 
         // Return success response
+        await logAudit({ request, userId: user.id, action: "AUTH_LOGIN_SUCCESS", entityType: "User", entityId: user.id, metadata: { email } })
         return NextResponse.json({
             success: true,
             user: {
@@ -79,6 +83,7 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error("Login error:", error)
+        try { await logAudit({ request, userId: null, action: "AUTH_LOGIN_ERROR", entityType: "System", entityId: null, metadata: { error: (error as Error).message } }) } catch {}
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

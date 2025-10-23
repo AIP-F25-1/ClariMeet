@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logAudit } from "@/lib/audit"
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +13,7 @@ export async function POST(request: NextRequest) {
     // - Store in database
     // - Send email notification
 
+    await logAudit({ request, userId: body.user_id ?? null, action: "GET_STARTED", entityType: "Onboarding", entityId: null, metadata: body })
     return NextResponse.json({
       success: true,
       message: 'Get Started action recorded',
@@ -25,6 +27,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Handle error silently for performance
     
+    try { await logAudit({ request, userId: null, action: "GET_STARTED_ERROR", entityType: "System", entityId: null, metadata: { error: (error as Error).message } }) } catch {}
     return NextResponse.json(
       { 
         success: false, 

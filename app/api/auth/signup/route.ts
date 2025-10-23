@@ -3,6 +3,7 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { hash } from "bcrypt"
 import { sign } from "jsonwebtoken"
+import { logAudit } from "@/lib/audit"
 
 const signupSchema = z.object({
     name: z.string().min(1, "Name is required").max(100),
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
 
         const existing = await prisma.user.findUnique({ where: { email } })
         if (existing) {
+            await logAudit({ request, userId: existing.id, action: "AUTH_SIGNUP_CONFLICT", entityType: "User", entityId: existing.id, metadata: { email } })
             return NextResponse.json(
                 { error: "Email already registered" },
                 { status: 409 }
@@ -52,6 +54,8 @@ export async function POST(request: Request) {
             }
         })
 
+        await logAudit({ request, userId: user.id, action: "AUTH_SIGNUP_SUCCESS", entityType: "User", entityId: user.id, metadata: { email } })
+
         const token = sign(
             {
                 id: user.id,
@@ -70,6 +74,7 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error("Signup error:", error)
+        try { await logAudit({ request, userId: null, action: "AUTH_SIGNUP_ERROR", entityType: "System", entityId: null, metadata: { error: (error as Error).message } }) } catch {}
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

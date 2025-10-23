@@ -18,6 +18,7 @@ model User {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   transcriptions TranscriptChunk[]
+  auditLogs      AuditLog[]
 }
 
 model VerificationToken {
@@ -61,4 +62,24 @@ model TranscriptChunk {
 enum Role {
   USER
   ADMIN
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  userAgent  String?
+  hash       String?
+  prevHash   String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }
