@@ -58,6 +58,36 @@ model TranscriptChunk {
   @@map("transcript_chunks")
 }
 
+model Meeting {
+  id         String    @id @default(cuid())
+  orgId      String    @map("org_id")
+  title      String
+  startedAt  DateTime  @map("started_at")
+  endedAt    DateTime? @map("ended_at")
+  platform   String
+  attendees  String[]
+  status     String
+
+  decisions  Decision[]
+
+  @@map("meetings")
+}
+
+model Decision {
+  id               String    @id @default(cuid())
+  meetingId        String    @map("meeting_id")
+  statement        String
+  rationale        String
+  evidenceSpanIds  String[]  @map("evidence_span_ids")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  meeting          Meeting   @relation(fields: [meetingId], references: [id])
+
+  @@index([meetingId, createdAt])
+  @@map("decisions")
+}
+
 enum Role {
   USER
   ADMIN
