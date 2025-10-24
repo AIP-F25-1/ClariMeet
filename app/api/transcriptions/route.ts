@@ -1,18 +1,26 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
   try {
-    const user = auth(request)
+    const user = await auth(request)
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const transcriptions = await prisma.transcriptChunk.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-    })
+        const transcriptions = await prisma.transcriptChunk.findMany({
+            include: {
+                meeting: {
+                    select: {
+                        title: true,
+                        startedAt: true,
+                        platform: true
+                    }
+                }
+            },
+            orderBy: { createdAt: "desc" },
+        })
 
     return NextResponse.json({ transcriptions })
   } catch (error) {

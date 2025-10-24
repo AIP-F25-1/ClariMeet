@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
 import { z } from "zod"
 
 const createMeetingSchema = z.object({
@@ -53,18 +53,8 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
     try {
-        const { searchParams } = new URL(request.url)
-        const orgId = searchParams.get('orgId')
-
-        if (!orgId) {
-            return NextResponse.json(
-                { error: "Organization ID is required" },
-                { status: 400 }
-            )
-        }
-
+        // For now, return all meetings (you can add filtering later)
         const meetings = await prisma.meeting.findMany({
-            where: { orgId },
             include: {
                 attendees: true
             },

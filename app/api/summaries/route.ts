@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
 import { z } from "zod"
 
 // Validation schema for creating summary
@@ -91,17 +91,8 @@ export async function GET(request: Request) {
             )
         }
 
-        // Get summaries for user's meetings
+        // Get all summaries for now (you can add user filtering later)
         const summaries = await prisma.summary.findMany({
-            where: {
-                meeting: {
-                    attendees: {
-                        some: {
-                            userId
-                        }
-                    }
-                }
-            },
             include: {
                 meeting: {
                     select: {

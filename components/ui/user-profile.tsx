@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import React from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { LogOut, User } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut } from 'lucide-react';
+import React from 'react';
 
 export const UserProfile: React.FC = () => {
   const { user, signOut } = useAuth()

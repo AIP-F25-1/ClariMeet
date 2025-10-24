@@ -10,6 +10,7 @@ import {
     X
 } from "lucide-react";
 // animations removed to avoid external motion library
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { SparklesCore } from "./sparkles-core";
@@ -59,25 +60,30 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
         <SparklesCore
           id="dashboard-sparkles"
           background="rgba(0, 0, 0, 1)"
-          minSize={0.6}
-          maxSize={1.4}
-          particleDensity={100}
+          minSize={0.3}
+          maxSize={0.8}
+          particleDensity={15}
           className="w-full h-full"
           particleColor="#FFFFFF"
         />
       </div>
 
-      {/* Toggle Button when sidebar closed */}
-      {!shouldExpand && (
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="fixed top-6 left-4 z-50 bg-gray-900/80 backdrop-blur-xl rounded-lg p-2 border border-gray-700/30 hover:border-gray-600/50 transition-all duration-300 shadow-2xl"
-        >
-          <div className="h-8 w-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm font-bold">CM</span>
-          </div>
-        </button>
-      )}
+      {/* Logo button to open sidebar */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-6 left-4 z-50 bg-transparent rounded-lg p-2 hover:bg-gray-900/20 transition-all duration-300"
+      >
+        <div className="h-8 w-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg flex items-center justify-center">
+          <span className="text-white text-sm font-bold">CM</span>
+        </div>
+      </button>
+
+      {/* Hover zone to trigger sidebar */}
+      <div
+        className="fixed left-0 top-0 h-full w-4 z-30"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      />
 
       {/* Sidebar without animation */}
       {shouldExpand && (
@@ -89,14 +95,14 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
           <div className="flex flex-col h-full">
             <div className="p-6 border-b border-gray-700/20">
               <div className="flex items-center justify-between">
-                <button
-                  onClick={() => router.push('/')}
+                <Link
+                  href="/"
                   className="flex items-center gap-3 hover:bg-gray-700/20 p-2 rounded-lg transition-colors"
                 >
                   <div className="h-8 w-8 bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg flex items-center justify-center shrink-0">
                     <span className="text-white text-sm font-bold">CM</span>
                   </div>
-                </button>
+                </Link>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 rounded-lg bg-gray-700/20 text-gray-300 hover:bg-gray-600/30 transition-colors"
@@ -110,7 +116,7 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
               <nav className="space-y-2">
                 {navigationItems.map((item) => (
                   <div key={item.title} className="overflow-hidden">
-                    <a
+                    <Link
                       href={item.href}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
                         item.href === pathname
@@ -120,7 +126,7 @@ export function DashboardLayoutWithSidebar({ children }: DashboardLayoutProps) {
                     >
                       <item.icon className="w-5 h-5 shrink-0" />
                       <span className="whitespace-nowrap">{item.title}</span>
-                    </a>
+                    </Link>
                   </div>
                 ))}
               </nav>

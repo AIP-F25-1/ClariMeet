@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
 import { z } from "zod"
 
 const createDecisionSchema = z.object({
@@ -12,15 +12,23 @@ const createDecisionSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const user = auth(request)
+    const user = await auth(request)
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const decisions = await prisma.decision.findMany({
-      where: { meeting: { userId: user.id } },
-      orderBy: { createdAt: "desc" },
-    })
+        const decisions = await prisma.decision.findMany({
+            include: {
+                meeting: {
+                    select: {
+                        title: true,
+                        startedAt: true,
+                        platform: true
+                    }
+                }
+            },
+            orderBy: { createdAt: "desc" },
+        })
 
     return NextResponse.json({ decisions })
   } catch (error) {
@@ -31,7 +39,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = auth(request)
+    const user = await auth(request)
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -49,7 +57,14 @@ export async function POST(request: Request) {
 
     // Ensure the meeting belongs to the authenticated user
     const meeting = await prisma.meeting.findFirst({
-      where: { id: meeting_id, userId: user.id },
+      where: { 
+        id: meeting_id,
+        attendees: {
+          some: {
+            userId: user.id
+          }
+        }
+      },
       select: { id: true },
     })
     if (!meeting) {

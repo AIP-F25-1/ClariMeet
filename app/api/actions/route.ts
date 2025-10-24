@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
 import { z } from "zod"
 
 const createActionSchema = z.object({
@@ -98,17 +98,8 @@ export async function GET(request: Request) {
             )
         }
 
-        // Get actions for user's meetings
+        // Get all actions for now (you can add user filtering later)
         const actions = await prisma.action.findMany({
-            where: {
-                meeting: {
-                    attendees: {
-                        some: {
-                            userId
-                        }
-                    }
-                }
-            },
             include: {
                 meeting: {
                     select: {

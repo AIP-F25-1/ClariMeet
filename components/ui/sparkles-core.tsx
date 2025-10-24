@@ -21,130 +21,99 @@ export const SparklesCore: React.FC<SparklesCoreProps> = ({
   particleColor = "#FFFFFF"
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>();
+  const particlesRef = useRef<any[]>([]);
 
   useEffect(() => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-      if (!ctx) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-      let animationFrameId: number;
-      const particles: Particle[] = [];
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
 
-      class Particle {
-        x: number;
-        y: number;
-        size: number;
-        opacity: number;
-        speed: number;
-        direction: number;
-        twinkleSpeed: number;
-        twinkleDirection: number;
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
 
-        constructor() {
-          this.x = Math.random() * canvas.width;
-          this.y = Math.random() * canvas.height;
-          this.size = Math.random() * (maxSize - minSize) + minSize;
-          this.opacity = Math.random();
-          this.speed = Math.random() * 0.5 + 0.1; // Slower movement
-          this.direction = Math.random() * Math.PI * 2; // Random direction
-          this.twinkleSpeed = Math.random() * 0.05 + 0.01; // Slower twinkle
-          this.twinkleDirection = Math.random() > 0.5 ? 1 : -1;
-        }
-
-        update() {
-          this.x += Math.cos(this.direction) * this.speed;
-          this.y += Math.sin(this.direction) * this.speed;
-
-          // Wrap particles around the screen
-          if (this.x < 0) this.x = canvas.width;
-          if (this.x > canvas.width) this.x = 0;
-          if (this.y < 0) this.y = canvas.height;
-          if (this.y > canvas.height) this.y = 0;
-
-          this.opacity += this.twinkleSpeed * this.twinkleDirection;
-          if (this.opacity > 1 || this.opacity < 0) {
-            this.twinkleDirection *= -1;
-          }
-        }
-
-        draw() {
-          if (!ctx) return;
-
-          ctx.save();
-          ctx.translate(this.x, this.y);
-          ctx.rotate(this.direction);
-
-          // Draw a cross shape
-          ctx.beginPath();
-          ctx.moveTo(-this.size, 0);
-          ctx.lineTo(this.size, 0);
-          ctx.moveTo(0, -this.size);
-          ctx.lineTo(0, this.size);
-          ctx.strokeStyle = particleColor;
-          ctx.lineWidth = 1;
-          ctx.globalAlpha = this.opacity;
-          ctx.stroke();
-
-          // Draw a small circle in the center
-          ctx.beginPath();
-          ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
-          ctx.fillStyle = particleColor;
-          ctx.globalAlpha = this.opacity;
-          ctx.fill();
-
-          ctx.restore();
-        }
+    // Create particles
+    const createParticles = () => {
+      particlesRef.current = [];
+      const particleCount = Math.floor((canvas.width * canvas.height * particleDensity) / 10000);
+      
+      for (let i = 0; i < particleCount; i++) {
+        particlesRef.current.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * (maxSize - minSize) + minSize,
+          speedX: (Math.random() - 0.5) * 0.5,
+          speedY: (Math.random() - 0.5) * 0.5,
+          opacity: Math.random() * 0.5 + 0.3,
+          life: Math.random() * 100 + 50
+        });
       }
+    };
 
-      const initParticles = () => {
-        for (let i = 0; i < particleDensity; i++) {
-          particles.push(new Particle());
-        }
-      };
+    createParticles();
 
-      const resizeCanvas = () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        // Re-initialize particles on resize to distribute them correctly
-        particles.length = 0;
-        initParticles();
-      };
+    const animate = () => {
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      window.addEventListener("resize", resizeCanvas);
-      resizeCanvas();
+      particlesRef.current.forEach((particle, index) => {
+        // Update position
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        particle.life--;
 
-      const animate = () => {
-        if (!ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = background;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        for (let i = 0; i < particles.length; i++) {
-          particles[i].update();
-          particles[i].draw();
+        // Reset particle if it goes off screen or dies
+        if (particle.x < 0 || particle.x > canvas.width || 
+            particle.y < 0 || particle.y > canvas.height || 
+            particle.life <= 0) {
+          particle.x = Math.random() * canvas.width;
+          particle.y = Math.random() * canvas.height;
+          particle.life = Math.random() * 100 + 50;
         }
 
-        animationFrameId = requestAnimationFrame(animate);
-      };
+        // Draw particle
+        ctx.save();
+        ctx.globalAlpha = particle.opacity;
+        ctx.fillStyle = particleColor;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
 
-      initParticles();
-      animate();
+      animationRef.current = requestAnimationFrame(animate);
+    };
 
-      return () => {
-        window.removeEventListener("resize", resizeCanvas);
-        cancelAnimationFrame(animationFrameId);
-      };
-    }
+    animate();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      window.removeEventListener("resize", resizeCanvas);
+    };
   }, [background, minSize, maxSize, particleDensity, particleColor]);
 
   return (
     <canvas
-      id={id}
       ref={canvasRef}
-      className={`absolute inset-0 w-full h-full ${className}`}
-      style={{ background: background }}
+      id={id}
+      className={className}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none"
+      }}
     />
   );
 };

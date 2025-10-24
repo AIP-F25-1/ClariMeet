@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { useTranscript, type TranscriptMode } from "@/contexts/transcript-context"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useTranscript, type TranscriptMode } from "@/contexts/transcript-context";
 
 export function ModeToggle() {
   const { mode, setMode, isLiveConnected, startLiveMode, stopLiveMode, loadTranscript, isLoading } = useTranscript()

@@ -3,6 +3,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Lanyard wrapper styles */
+.lanyard-wrapper {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: scale(1);
+  transform-origin: center;
+  overflow: hidden;
+}
+
 :root {
   /* Updated color tokens to match modern video player design brief */
   --background: oklch(1 0 0);

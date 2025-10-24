@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import React, { useRef, useEffect, useState } from 'react';
+import { useGSAP } from '@gsap/react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText as GSAPSplitText } from 'gsap/SplitText';
-import { useGSAP } from '@gsap/react';
+import React, { useEffect, useRef, useState } from 'react';
 import './shuffle.css';
 
 gsap.registerPlugin(ScrollTrigger, GSAPSplitText, useGSAP);
@@ -113,7 +113,7 @@ const Shuffle = ({
         wrappersRef.current = [];
 
         const rolls = Math.max(1, Math.floor(shuffleTimes));
-        const rand = set => set.charAt(Math.floor(Math.random() * set.length)) || '';
+        const rand = set => typeof window !== 'undefined' ? set.charAt(Math.floor(Math.random() * set.length)) || '' : '';
 
         chars.forEach(ch => {
           const parent = ch.parentElement;
@@ -181,7 +181,7 @@ const Shuffle = ({
       const inners = () => wrappersRef.current.map(w => w.firstElementChild);
 
       const randomizeScrambles = () => {
-        if (!scrambleCharset) return;
+        if (!scrambleCharset || typeof window === 'undefined') return;
         wrappersRef.current.forEach(w => {
           const strip = w.firstElementChild;
           if (!strip) return;
@@ -256,7 +256,7 @@ const Shuffle = ({
           if (even.length) addTween(even, evenStart);
         } else {
           strips.forEach(strip => {
-            const d = Math.random() * maxDelay;
+            const d = typeof window !== 'undefined' ? Math.random() * maxDelay : 0;
             tl.to(
               strip,
               {

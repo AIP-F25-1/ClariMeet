@@ -1,44 +1,32 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/contexts/AuthContext"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { AccessGrantPopup } from "./access-grant-popup"
-import CardNav from "./card-nav"
+import { useAuth } from "@/contexts/AuthContext";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { AccessGrantPopup } from "./access-grant-popup";
+import PillNav from "./pill-nav";
 
 const navigationItems = [
   {
+    label: "Home",
+    href: "/",
+    ariaLabel: "Go to home page"
+  },
+  {
     label: "Features",
-    bgColor: "#000000",
-    textColor: "#ffffff",
-    links: [
-      { label: "Transcript Sync", href: "#transcript-sync", ariaLabel: "Learn about transcript synchronization" },
-    ],
+    href: "#features",
+    ariaLabel: "Learn about features"
   },
   {
-    label: "Integrations",
-    bgColor: "#000000",
-    textColor: "#ffffff",
-    links: [
-      { label: "API Access", href: "#api", ariaLabel: "Learn about API access" },
-      { label: "WebSocket", href: "#websocket", ariaLabel: "Learn about WebSocket integration" },
-      { label: "Mock Data", href: "#mock-data", ariaLabel: "Learn about mock data" },
-    ],
-  },
-  {
-    label: "Resources",
-    bgColor: "#000000",
-    textColor: "#ffffff",
-    links: [
-      { label: "Documentation", href: "#docs", ariaLabel: "View documentation" },
-      { label: "Examples", href: "#examples", ariaLabel: "View examples" },
-      { label: "Support", href: "#support", ariaLabel: "Get support" },
-    ],
-  },
+    label: "Dashboard",
+    href: "/dashboard",
+    ariaLabel: "Go to dashboard"
+  }
 ]
 
 export function Header() {
   const router = useRouter()
+  const pathname = usePathname()
   const { isAuthenticated, isLoading, user, signOut } = useAuth()
   const [showAccessPopup, setShowAccessPopup] = useState(false)
 
@@ -102,61 +90,56 @@ export function Header() {
   }
 
   return (
-    <div className="fixed top-4 left-4 right-4 z-50">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between">
-          {/* Left side - Logo and Navigation */}
-          <div className="flex-1">
-            <CardNav
-              logo="/video-transcript-logo.jpg"
-              logoAlt="ClariMeet - Video Transcript Player"
-              items={getNavigationItems()}
-              baseColor="rgba(0, 0, 0, 0.8)"
-              menuColor="#ffffff"
-              buttonBgColor="transparent"
-              buttonTextColor="#ffffff"
-              buttonText=""
-              ease="power3.out"
-              onButtonClick={() => {}}
-            />
+    <div className="fixed top-4 left-16 z-50">
+      <PillNav
+        logo=""
+        logoAlt=""
+        items={navigationItems}
+        activeHref={pathname}
+        baseColor="#ffffff"
+        pillColor="#000000"
+        hoveredPillTextColor="#ffffff"
+        pillTextColor="#ffffff"
+        ease="power3.easeOut"
+        initialLoadAnimation={true}
+      />
+        
+      {/* User Profile and Actions */}
+      {isAuthenticated && user && (
+        <div className="fixed top-4 right-4 flex items-center gap-3">
+          {/* User Profile Circle */}
+          <div className="flex items-center gap-2 bg-black/60 backdrop-blur-xl rounded-full px-3 py-2 border border-cyan-400/30">
+            <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-semibold">
+                {getUserInitials(user.name || user.email)}
+              </span>
+            </div>
+            <span className="text-white text-sm font-medium hidden sm:block">
+              {user.name || user.email.split('@')[0]}
+            </span>
           </div>
           
-          {/* Right side - User Profile and Logout */}
-          {isAuthenticated && user && (
-            <div className="flex items-center gap-3 ml-4">
-              {/* User Profile Circle */}
-              <div className="flex items-center gap-2 bg-black/60 backdrop-blur-xl rounded-full px-3 py-2 border border-cyan-400/30">
-                <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">
-                    {getUserInitials(user.name || user.email)}
-                  </span>
-                </div>
-                <span className="text-white text-sm font-medium hidden sm:block">
-                  {user.name || user.email.split('@')[0]}
-                </span>
-              </div>
-              
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                className="bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-400 hover:text-red-300 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 backdrop-blur-xl"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-          
-          {/* Get Started Button for non-authenticated users */}
-          {!isAuthenticated && (
-            <button
-              onClick={handleGetStarted}
-              className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/30 text-cyan-400 hover:text-cyan-300 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 backdrop-blur-xl ml-4"
-            >
-              Get Started
-            </button>
-          )}
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-400 hover:text-red-300 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 backdrop-blur-xl"
+          >
+            Logout
+          </button>
         </div>
-      </div>
+      )}
+      
+      {/* Get Started Button for non-authenticated users */}
+      {!isAuthenticated && (
+        <div className="fixed top-4 right-4">
+          <button
+            onClick={handleGetStarted}
+            className="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/30 text-cyan-400 hover:text-cyan-300 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 backdrop-blur-xl"
+          >
+            Get Started
+          </button>
+        </div>
+      )}
 
       {/* Access Grant Popup */}
       <AccessGrantPopup

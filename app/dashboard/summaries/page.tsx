@@ -1,48 +1,21 @@
 "use client"
 
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 import {
-    BarChart3,
-    Calendar,
-    Clock,
-    Download,
-    Eye,
-    Filter,
-    Search,
-    TrendingUp
+  BarChart3,
+  Calendar,
+  Clock,
+  Download,
+  Eye,
+  Filter,
+  Search,
+  TrendingUp
 } from "lucide-react"
 
-const mockSummaries = [
-  {
-    id: 1,
-    title: "Team Standup Meeting - Summary",
-    meetingTitle: "Team Standup Meeting",
-    date: "2024-01-15",
-    duration: "15m",
-    keyPoints: 5,
-    status: "Completed"
-  },
-  {
-    id: 2,
-    title: "Client Project Kick-off - Summary",
-    meetingTitle: "Client Project Kick-off",
-    date: "2024-01-14",
-    duration: "45m",
-    keyPoints: 8,
-    status: "Completed"
-  },
-  {
-    id: 3,
-    title: "Weekly Sync - Summary",
-    meetingTitle: "Weekly Sync",
-    date: "2024-01-12",
-    duration: "30m",
-    keyPoints: 6,
-    status: "Completed"
-  }
-]
-
 export default function SummariesPage() {
+  const { summaries, loading, error } = useDashboardData()
+
   return (
     <DashboardLayoutWithSidebar>
       <div className="p-4 pl-16 min-h-screen">
@@ -76,48 +49,70 @@ export default function SummariesPage() {
             </button>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading summaries...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+              <p className="text-red-400">Error loading summaries: {error}</p>
+            </div>
+          )}
+
           {/* Summaries List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockSummaries.map((summary) => (
-              <div key={summary.id} className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 transition-all duration-300 flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white">{summary.title}</h3>
-                  <div className="flex gap-2">
-                    <button className="p-2 rounded-full bg-cyan-500/20 text-gray-300 hover:bg-cyan-500/30 transition-colors" title="View">
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors" title="Download">
-                      <Download className="w-4 h-4" />
-                    </button>
+            {summaries.length > 0 ? (
+              summaries.map((summary) => (
+                <div key={summary.id} className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 transition-all duration-300 flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-white">{summary.meeting.title} - {summary.type}</h3>
+                    <div className="flex gap-2">
+                      <button className="p-2 rounded-full bg-cyan-500/20 text-gray-300 hover:bg-cyan-500/30 transition-colors" title="View">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors" title="Download">
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                
-                <p className="text-gray-400 text-sm mb-4 flex-grow">
-                  From: {summary.meetingTitle}
-                </p>
+                  
+                  <p className="text-gray-400 text-sm mb-4 flex-grow">
+                    From: {summary.meeting.title}
+                  </p>
 
-                <div className="flex items-center gap-4 text-gray-400 text-sm mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {summary.date}
+                  <div className="flex items-center gap-4 text-gray-400 text-sm mb-4">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(summary.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {new Date(summary.createdAt).toLocaleTimeString()}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {summary.duration}
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between mt-auto">
-                  <div className="flex items-center gap-1 text-gray-300 text-sm font-medium">
-                    <TrendingUp className="w-4 h-4" />
-                    {summary.keyPoints} key points
+                  <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center gap-1 text-gray-300 text-sm font-medium">
+                      <TrendingUp className="w-4 h-4" />
+                      {summary.type.toLowerCase().replace('_', ' ')}
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                      Completed
+                    </span>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                    {summary.status}
-                  </span>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400">No summaries found</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

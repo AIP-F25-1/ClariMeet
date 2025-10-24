@@ -1,6 +1,7 @@
 "use client"
 
 import { DashboardLayoutWithSidebar } from "@/components/ui/dashboard-layout-with-sidebar"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 import {
     Calendar,
     Clock,
@@ -11,37 +12,8 @@ import {
     Search
 } from "lucide-react"
 
-const mockTranscriptions = [
-  {
-    id: 1,
-    title: "Team Standup Meeting - Transcript",
-    meetingTitle: "Team Standup Meeting",
-    date: "2024-01-15",
-    duration: "15m",
-    wordCount: 1250,
-    status: "Completed"
-  },
-  {
-    id: 2,
-    title: "Client Project Kick-off - Transcript",
-    meetingTitle: "Client Project Kick-off",
-    date: "2024-01-14",
-    duration: "45m",
-    wordCount: 3200,
-    status: "Completed"
-  },
-  {
-    id: 3,
-    title: "Weekly Sync - Transcript",
-    meetingTitle: "Weekly Sync",
-    date: "2024-01-12",
-    duration: "30m",
-    wordCount: 2100,
-    status: "Completed"
-  }
-]
-
 export default function TranscriptionsPage() {
+  const { transcripts, loading, error } = useDashboardData()
   return (
     <DashboardLayoutWithSidebar>
       <div className="p-4 pl-16 min-h-screen">
@@ -75,47 +47,69 @@ export default function TranscriptionsPage() {
             </button>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading transcriptions...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+              <p className="text-red-400">Error loading transcriptions: {error}</p>
+            </div>
+          )}
+
           {/* Transcriptions List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mockTranscriptions.map((transcript) => (
-              <div key={transcript.id} className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 transition-all duration-300 flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white">{transcript.title}</h3>
-                  <div className="flex gap-2">
-                    <button className="p-2 rounded-full bg-cyan-500/20 text-gray-300 hover:bg-cyan-500/30 transition-colors" title="View">
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors" title="Download">
-                      <Download className="w-4 h-4" />
-                    </button>
+            {transcripts.length > 0 ? (
+              transcripts.map((transcript) => (
+                <div key={transcript.id} className="bg-gray-800/40 rounded-xl p-6 border border-gray-600/20 hover:border-gray-600/40 transition-all duration-300 flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-white">{transcript.meeting.title} - Transcript</h3>
+                    <div className="flex gap-2">
+                      <button className="p-2 rounded-full bg-cyan-500/20 text-gray-300 hover:bg-cyan-500/30 transition-colors" title="View">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors" title="Download">
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                
-                <p className="text-gray-400 text-sm mb-4 flex-grow">
-                  From: {transcript.meetingTitle}
-                </p>
+                  
+                  <p className="text-gray-400 text-sm mb-4 flex-grow">
+                    From: {transcript.meeting.title}
+                  </p>
 
-                <div className="flex items-center gap-4 text-gray-400 text-sm mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    {transcript.date}
+                  <div className="flex items-center gap-4 text-gray-400 text-sm mb-4">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(transcript.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {new Date(transcript.createdAt).toLocaleTimeString()}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {transcript.duration}
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="text-gray-300 text-sm font-medium">
-                    {transcript.wordCount.toLocaleString()} words
-                  </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                    {transcript.status}
-                  </span>
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className="text-gray-300 text-sm font-medium">
+                      {transcript.text?.length || 0} characters
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                      Completed
+                    </span>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400">No transcriptions found</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
