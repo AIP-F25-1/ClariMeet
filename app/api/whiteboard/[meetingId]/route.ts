@@ -15,8 +15,17 @@ export async function GET(
 
     const { meetingId } = params
 
+    // Validate meetingId parameter
+    if (!meetingId || typeof meetingId !== 'string' || meetingId.trim() === '') {
+      return NextResponse.json({ error: "Invalid meeting ID" }, { status: 400 })
+    }
+
+    // Get query parameters for filtering
+    const { searchParams } = new URL(request.url)
+    const version = searchParams.get('version')
+    const latest = searchParams.get('latest') === 'true'
+
     // Check if meeting exists
-    // @ts-expect-error Meeting model may not be present in generated Prisma types yet
     const meeting = await prisma.meeting.findFirst({
       where: { id: meetingId },
       select: { id: true },
@@ -28,10 +37,30 @@ export async function GET(
       )
     }
 
-    // @ts-expect-error WhiteboardSnapshot model may not be present in generated Prisma types yet
+    // Build where clause based on query parameters
+    let whereClause: any = { meetingId }
+    
+    if (version) {
+      whereClause.version = parseInt(version)
+    }
+    
+    if (latest) {
+      // Get the latest version for this meeting
+      const latestSnapshot = await prisma.whiteboardSnapshot.findFirst({
+        where: { meetingId },
+        orderBy: { version: 'desc' },
+        select: { version: true }
+      })
+      
+      if (latestSnapshot) {
+        whereClause.version = latestSnapshot.version
+      }
+    }
+
+    // Fetch snapshots with proper ordering
     const snapshots = await prisma.whiteboardSnapshot.findMany({
-      where: { meetingId },
-      orderBy: { createdAt: "desc" },
+      where: whereClause,
+      orderBy: latest ? { createdAt: 'desc' } : { createdAt: 'desc' },
     })
 
     await logAudit({ 
@@ -40,10 +69,19 @@ export async function GET(
       action: "WHITEBOARD_SNAPSHOTS_LIST", 
       entityType: "WhiteboardSnapshot", 
       entityId: null, 
-      metadata: { meeting_id: meetingId, count: snapshots.length } 
+      metadata: { 
+        meeting_id: meetingId, 
+        count: snapshots.length,
+        filters: { version, latest }
+      } 
     })
 
-    return NextResponse.json({ snapshots })
+    return NextResponse.json({ 
+      snapshots,
+      total: snapshots.length,
+      meetingId,
+      filters: { version, latest }
+    })
   } catch (error) {
     console.error("Fetch whiteboard snapshots error:", error)
     try { 
