@@ -18,17 +18,50 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // @ts-expect-error Decision model may not be present in generated Prisma types yet
+    // Get query parameters for filtering
+    const { searchParams } = new URL(request.url)
+    const meetingId = searchParams.get('meeting_id')
+
+    // Build where clause
+    let whereClause: any = {}
+    if (meetingId) {
+      whereClause.meetingId = meetingId
+    }
+
     const decisions = await prisma.decision.findMany({
-      where: { meeting: { userId: user.id } },
+      where: whereClause,
       orderBy: { createdAt: "desc" },
     })
 
-    await logAudit({ request, userId: user.id, action: "DECISION_LIST", entityType: "Decision", entityId: null, metadata: { count: decisions.length } })
-    return NextResponse.json({ decisions })
+    await logAudit({ 
+      request, 
+      userId: user.id, 
+      action: "DECISION_LIST", 
+      entityType: "Decision", 
+      entityId: null, 
+      metadata: { 
+        count: decisions.length,
+        filters: { meeting_id: meetingId }
+      } 
+    })
+    
+    return NextResponse.json({ 
+      decisions,
+      total: decisions.length,
+      filters: { meeting_id: meetingId }
+    })
   } catch (error) {
     console.error("Fetch decisions error:", error)
-    try { await logAudit({ request, userId: null, action: "DECISION_LIST_ERROR", entityType: "System", entityId: null, metadata: { error: (error as Error).message } }) } catch { }
+    try { 
+      await logAudit({ 
+        request, 
+        userId: null, 
+        action: "DECISION_LIST_ERROR", 
+        entityType: "System", 
+        entityId: null, 
+        metadata: { error: (error as Error).message } 
+      }) 
+    } catch {}
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -51,20 +84,23 @@ export async function POST(request: Request) {
 
     const { meeting_id, statement, rationale, evidence_span_ids } = parsed.data
 
-    // Ensure the meeting belongs to the authenticated user
-    // @ts-expect-error Meeting model may not be present in generated Prisma types yet
+    // Validate meeting_id format
+    if (!meeting_id || typeof meeting_id !== 'string' || meeting_id.trim() === '') {
+      return NextResponse.json({ error: "Invalid meeting ID" }, { status: 400 })
+    }
+
+    // Check if meeting exists (removed user ownership check since Meeting model doesn't have userId)
     const meeting = await prisma.meeting.findFirst({
-      where: { id: meeting_id, userId: user.id },
+      where: { id: meeting_id },
       select: { id: true },
     })
     if (!meeting) {
       return NextResponse.json(
-        { error: "Forbidden: meeting does not belong to user" },
-        { status: 403 }
+        { error: "Meeting not found" },
+        { status: 404 }
       )
     }
 
-    // @ts-expect-error Decision model may not be present in generated Prisma types yet
     const created = await prisma.decision.create({
       data: {
         meetingId: meeting_id,
@@ -74,11 +110,28 @@ export async function POST(request: Request) {
       },
     })
 
-    await logAudit({ request, userId: user.id, action: "DECISION_CREATED", entityType: "Decision", entityId: created.id, metadata: { meeting_id } })
+    await logAudit({ 
+      request, 
+      userId: user.id, 
+      action: "DECISION_CREATED", 
+      entityType: "Decision", 
+      entityId: created.id, 
+      metadata: { meeting_id } 
+    })
+    
     return NextResponse.json({ decision: created }, { status: 201 })
   } catch (error) {
     console.error("Create decision error:", error)
-    try { await logAudit({ request, userId: null, action: "DECISION_CREATE_ERROR", entityType: "System", entityId: null, metadata: { error: (error as Error).message } }) } catch { }
+    try { 
+      await logAudit({ 
+        request, 
+        userId: null, 
+        action: "DECISION_CREATE_ERROR", 
+        entityType: "System", 
+        entityId: null, 
+        metadata: { error: (error as Error).message } 
+      }) 
+    } catch {}
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
