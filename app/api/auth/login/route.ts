@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
-import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { compare } from "bcrypt"
 import { sign } from "jsonwebtoken"
+import { NextResponse } from "next/server"
+import { z } from "zod"
 
 // Validation schema
 const loginSchema = z.object({
@@ -79,6 +79,41 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error("Login error:", error)
+        
+        // Handle Prisma errors with better messages
+        if (error instanceof Error) {
+            // Check for connection errors
+            if (error.message.includes("Can't reach database server") || 
+                error.message.includes("P1001") ||
+                error.message.includes("connection")) {
+                console.error("❌ Database connection failed. Make sure:")
+                console.error("   1. Docker Desktop is running (if using Docker)")
+                console.error("   2. Database container is started: npm run db:up")
+                console.error("   3. DATABASE_URL is correct in .env.local")
+                return NextResponse.json(
+                    { 
+                        error: "Database connection failed. Please ensure Docker Desktop is running and the database is started.",
+                        details: "Run 'npm run db:up' to start the database container."
+                    },
+                    { status: 500 }
+                )
+            }
+            
+            if (error.message.includes('DATABASE_URL')) {
+                return NextResponse.json(
+                    { error: "Database configuration error. Please check your DATABASE_URL in .env.local." },
+                    { status: 500 }
+                )
+            }
+            
+            if (error.message.includes('PrismaClient')) {
+                return NextResponse.json(
+                    { error: "Database connection error. Please check if Docker Desktop is running." },
+                    { status: 500 }
+                )
+            }
+        }
+        
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }

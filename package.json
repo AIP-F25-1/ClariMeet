@@ -8,8 +8,13 @@
     "lint": "next lint",
     "start": "next start",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:push": "node scripts/prisma-push.js",
+    "db:studio": "node scripts/prisma-studio.js",
+    "db:up": "node scripts/start-db.js",
+    "db:down": "docker-compose down",
+    "db:logs": "docker-compose logs -f postgres",
+    "db:restart": "docker-compose restart postgres",
+    "db:test": "node scripts/test-db-connection.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
