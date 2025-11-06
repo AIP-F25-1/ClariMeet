@@ -19,6 +19,7 @@ model User {
   updatedAt     DateTime   @updatedAt
   attendees     Attendee[]
   transcriptions TranscriptChunk[]
+  consentEvents  ConsentEvent[]
 }
 
 model VerificationToken {
@@ -57,6 +58,7 @@ model Meeting {
   decisions  Decision[]
   transcriptChunks TranscriptChunk[]
   videos     Video[]
+  consentEvents ConsentEvent[]
 }
 
 model Video {
@@ -132,6 +134,19 @@ model Action {
   updatedAt       DateTime     @updatedAt
 
   @@index([meetingId])
+}
+
+model ConsentEvent {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  timestamp DateTime @default(now())
+  value     Boolean
+  
+  @@index([meetingId])
+  @@index([userId])
 }
 
 enum Platform {
