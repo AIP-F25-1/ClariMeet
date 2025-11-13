@@ -12,11 +12,13 @@ import {
   Calendar,
   Clock,
   FileText,
-  Sparkles
+  Sparkles,
+  Crown
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import Link from "next/link"
 import React from "react"
+import { Button } from "@/components/ui/button"
 
 const dashboardOptions = [
   {
@@ -201,7 +203,7 @@ export default function Dashboard() {
         <div className="space-y-8">
           {/* Dashboard Header */}
           <div className="bg-black/60 backdrop-blur-xl rounded-3xl border border-cyan-400/30 shadow-2xl p-8 md:p-12 hover:bg-black/70 transition-all duration-500 hover:shadow-3xl hover:scale-[1.01]">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
                   Welcome back, {user?.given_name || user?.name}!
@@ -210,7 +212,18 @@ export default function Dashboard() {
                   Manage your meetings, transcripts, and AI tools
                 </p>
               </div>
-              <UserProfileCompact />
+              <div className="flex items-center gap-4 flex-wrap">
+                <Button
+                  asChild
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                >
+                  <Link href="/subscribe">
+                    <Crown className="w-4 h-4" />
+                    Subscribe
+                  </Link>
+                </Button>
+                <UserProfileCompact />
+              </div>
             </div>
 
             {/* Quick Stats */}
