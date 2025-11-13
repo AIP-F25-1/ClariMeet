@@ -1,3 +1,5 @@
+
+
 from __future__ import annotations
 from pathlib import Path
 from typing import Optional, List
@@ -7,6 +9,9 @@ from fastapi import FastAPI, Form, HTTPException
 from pydantic import BaseModel
 
 from clarimeet.summarize import summarize_session, write_outputs
+# .env autoload (before anything reads os.environ)
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI(title="ClariMeet — Summarization API")
 
