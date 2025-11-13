@@ -64,20 +64,59 @@ enum Role {
   ADMIN
 }
 
+model Organization {
+  id             String         @id @default(cuid())
+  name           String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  meetings       Meeting[]
+  billingUsages  BillingUsage[]
+  archivedUsages BillingUsageArchive[]
+
+  @@map("organizations")
+}
+
 model Meeting {
-  id         String    @id @default(cuid())
-  orgId      String    @map("org_id")
-  title      String
-  startedAt  DateTime  @map("started_at")
-  endedAt    DateTime? @map("ended_at")
-  platform   String
-  attendees  String[]
-  status     String
+  id           String        @id @default(cuid())
+  orgId        String        @map("org_id")
+  title        String
+  startedAt    DateTime      @map("started_at")
+  endedAt      DateTime?     @map("ended_at")
+  platform     String
+  attendees    String[]
+  status       String
+  organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   decisions           Decision[]
   whiteboardSnapshots WhiteboardSnapshot[]
 
   @@map("meetings")
+}
+
+model BillingUsage {
+  id                   String        @id @default(cuid())
+  orgId                String        @map("org_id")
+  transcriptionMinutes Decimal       @default(0) @db.Decimal(10, 2)
+  meetingCount         Int           @default(0)
+  month                DateTime
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  organization         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, month])
+  @@map("billing_usage")
+}
+
+model BillingUsageArchive {
+  id                   String        @id @default(cuid())
+  orgId                String        @map("org_id")
+  transcriptionMinutes Decimal       @db.Decimal(10, 2)
+  meetingCount         Int
+  month                DateTime
+  archivedAt           DateTime      @default(now())
+  organization         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@map("billing_usage_archive")
 }
 
 model Decision {
