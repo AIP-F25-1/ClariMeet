@@ -1,0 +1,17 @@
+# build outputs
+dist/
+build/
+*.zip
+*.crx
+
+# deps / logs / OS
+node_modules/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+
+# local env
+.env
+.env.*
+*.pem

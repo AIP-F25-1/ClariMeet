@@ -1,0 +1,22 @@
+{
+    "name": "Tab Audio Recorder (Popup)",
+    "description": "Record the current tab's audio and save locally (WebM/Opus).",
+    "version": "1.2.0",
+    "manifest_version": 3,
+    "permissions": [
+        "tabCapture",
+        "downloads",
+        "activeTab",
+        "tabs",
+        "storage"
+    ],
+    "action": {
+        "default_title": "Record this tab",
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
+}
