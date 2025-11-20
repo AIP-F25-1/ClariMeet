@@ -3,12 +3,29 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
+// Limit request body size
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: "1mb",
+        },
+    },
+}
+
 // Validation schema for creating summary
 const createSummarySchema = z.object({
     meeting_id: z.string().min(1, "Meeting ID is required"),
-    type: z.enum(["KEY_POINTS", "ACTION_ITEMS", "DECISIONS", "HIGHLIGHTS", "FULL_SUMMARY"]),
+    type: z.enum([
+        "KEY_POINTS",
+        "ACTION_ITEMS",
+        "DECISIONS",
+        "HIGHLIGHTS",
+        "FULL_SUMMARY"
+    ]),
     content: z.string().min(1, "Content is required"),
-    evidence_span_ids: z.array(z.string())
+    evidence_span_ids: z
+        .array(z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/))
+        .max(100)
 })
 
 export async function POST(request: Request) {
@@ -16,15 +33,13 @@ export async function POST(request: Request) {
         // Authenticate user
         const userId = await auth(request)
         if (!userId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            )
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
         // Validate request body
         const body = await request.json()
         const parsed = createSummarySchema.safeParse(body)
+
         if (!parsed.success) {
             return NextResponse.json(
                 { error: "Invalid input", details: parsed.error.issues },
@@ -37,9 +52,7 @@ export async function POST(request: Request) {
             where: {
                 id: parsed.data.meeting_id,
                 attendees: {
-                    some: {
-                        userId
-                    }
+                    some: { userId }
                 }
             }
         })
@@ -51,7 +64,7 @@ export async function POST(request: Request) {
             )
         }
 
-        // Create summary
+        // No sanitization needed — storing plain text
         const summary = await prisma.summary.create({
             data: {
                 meetingId: parsed.data.meeting_id,
@@ -85,14 +98,18 @@ export async function GET(request: Request) {
         // Authenticate user
         const userId = await auth(request)
         if (!userId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            )
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        // Get all summaries for now (you can add user filtering later)
+        // Secure GET — only summaries from meetings the user attended
         const summaries = await prisma.summary.findMany({
+            where: {
+                meeting: {
+                    attendees: {
+                        some: { userId }
+                    }
+                }
+            },
             include: {
                 meeting: {
                     select: {
@@ -103,7 +120,7 @@ export async function GET(request: Request) {
                 }
             },
             orderBy: {
-                createdAt: 'desc'
+                createdAt: "desc"
             }
         })
 
