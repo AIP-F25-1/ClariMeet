@@ -13,12 +13,14 @@ import {
   Clock,
   FileText,
   Sparkles,
-  Crown
+  Crown,
+  Link2
 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import Link from "next/link"
 import React from "react"
 import { Button } from "@/components/ui/button"
+import { ConnectModal } from "@/components/ui/connect-modal"
 
 const dashboardOptions = [
   {
@@ -148,6 +150,7 @@ const AnimatedCard = ({
 export default function Dashboard() {
   const { user } = useAuth()
   const { meetings, summaries, transcripts, loading, error } = useDashboardData()
+  const [isConnectModalOpen, setIsConnectModalOpen] = React.useState(false)
 
   // Generate quick stats from real data
   const quickStats = [
@@ -213,6 +216,13 @@ export default function Dashboard() {
                 </p>
               </div>
               <div className="flex items-center gap-4 flex-wrap">
+                <Button
+                  onClick={() => setIsConnectModalOpen(true)}
+                  className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                >
+                  <Link2 className="w-4 h-4" />
+                  Connect
+                </Button>
                 <Button
                   asChild
                   className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-2 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
@@ -315,6 +325,12 @@ export default function Dashboard() {
           </div>
         </div>
       </DashboardLayoutWithSidebar>
+      
+      {/* Connect Modal */}
+      <ConnectModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+      />
     </ProtectedRoute>
   )
 }
