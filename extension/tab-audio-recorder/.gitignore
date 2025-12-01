@@ -1,0 +1,16 @@
+# Builds / bundles
+dist/
+build/
+node_modules/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Env
+.env

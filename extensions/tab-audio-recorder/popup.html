@@ -1,0 +1,358 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Tab Audio Recorder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #0f172a;
+            --muted: #64748b;
+            --accent: #3b82f6;
+            --accent-fg: #ffffff;
+            --card: #f8fafc;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --ring: #93c5fd;
+            --good: #16a34a;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b1020;
+                --fg: #e5e7eb;
+                --muted: #9aa3b2;
+                --accent: #60a5fa;
+                --accent-fg: #0b1020;
+                --card: #0f172a;
+                --border: #1f2937;
+                --danger: #f87171;
+                --ring: #60a5fa;
+                --good: #22c55e;
+            }
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            margin: 0
+        }
+
+        body {
+            padding: 14px;
+            width: 360px;
+            /* a touch wider for better alignment */
+            background: var(--bg);
+            color: var(--fg);
+            font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 0 0 8px 0;
+        }
+
+        .title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-size: 16px;
+            letter-spacing: .2px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--muted);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, .6);
+            transition: all .25s ease
+        }
+
+        body.recording .dot {
+            background: var(--danger);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, .2)
+        }
+
+        .pill {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+            color: var(--muted)
+        }
+
+        body.recording .pill {
+            border-color: transparent;
+            color: #fff;
+            background: var(--danger)
+        }
+
+        /* Controls row */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 2px;
+        }
+
+        button {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--fg);
+            padding: 9px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, .05);
+            width: 100%;
+        }
+
+        button:hover {
+            border-color: var(--ring);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, .15)
+        }
+
+        button:active {
+            transform: translateY(1px)
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--accent), calc(100% - 10px), color-mix(in oklab, var(--accent) 80%, #000 20%));
+            color: var(--accent-fg);
+            border: 0;
+        }
+
+        .btn-danger {
+            background: linear-gradient(180deg, var(--danger), calc(100% - 10px), color-mix(in oklab, var(--danger) 80%, #000 20%));
+            color: #fff;
+            border: 0;
+        }
+
+        button[disabled] {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important
+        }
+
+        /* Form grid */
+        .form {
+            display: grid;
+            gap: 10px;
+            margin-top: 10px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .form .wide {
+            grid-column: 1 / -1
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            background: var(--bg);
+            color: var(--fg);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: var(--ring);
+            box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 20%, transparent)
+        }
+
+        /* Run row */
+        .runrow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .runrow .left {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .chk {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap
+        }
+
+        /* Report row */
+        .report {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px 10px;
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            background: color-mix(in oklab, var(--good) 10%, transparent);
+        }
+
+        .report a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600
+        }
+
+        .report a:hover {
+            text-decoration: underline
+        }
+
+        /* Footer */
+        .status {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            min-height: 1.2em
+        }
+
+        .hint {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--muted)
+        }
+
+        .footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 11px;
+            border-top: 1px dashed var(--border);
+            padding-top: 8px
+        }
+
+        .tabname {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <h3 class="title"><span class="dot" aria-hidden="true"></span> Tab Audio Recorder</h3>
+            <span class="pill" id="pill">Ready</span>
+        </div>
+
+        <div class="controls">
+            <button id="start" class="btn-primary">Start (this tab)</button>
+            <button id="stop" class="btn-danger" disabled>Stop</button>
+        </div>
+
+        <div class="form">
+            <div>
+                <label for="org">Org</label>
+                <input id="org" type="text" value="demo" />
+            </div>
+
+            <div class="wide">
+                <label for="meeting">Meeting ID</label>
+                <input id="meeting" type="text" placeholder="auto-filled from tab title…" />
+            </div>
+
+            <div>
+                <label for="model">Model</label>
+                <select id="model">
+                    <option value="tiny">tiny</option>
+                    <option value="base">base</option>
+                    <option value="small">small</option>
+                    <option value="medium">medium</option>
+                    <option value="large">large</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="bullets">TL;DR bullets</label>
+                <select id="bullets">
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                </select>
+            </div>
+
+            <div class="wide">
+                <label for="speakers">Assumed speakers</label>
+                <select id="speakers">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="runrow">
+            <div class="left">
+                <button id="saveBtn">Save file</button>
+                <button id="runBtn" class="btn-primary">Run ClariMeet</button>
+            </div>
+            <label class="chk" title="Open the HTML report after the pipeline finishes">
+                <input type="checkbox" id="openAuto" />
+                Auto-open report
+            </label>
+        </div>
+
+        <div class="report" id="reportRow">
+            <span>Report ready:</span>
+            <a id="reportLink" href="#" target="_blank" rel="noopener">Open report</a>
+        </div>
+
+        <div class="status" id="status" aria-live="polite">Idle</div>
+        <div class="hint">Keep this popup open while recording. Your audio will download or run through ClariMeet when
+            you stop.</div>
+
+        <div class="footer">
+            <span class="tabname" id="tabName" title="Current tab"></span>
+        </div>
+    </div>
+
+    <!-- Hidden player to let you hear the captured stream while recording -->
+    <audio id="monitorAudio" style="display:none"></audio>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
